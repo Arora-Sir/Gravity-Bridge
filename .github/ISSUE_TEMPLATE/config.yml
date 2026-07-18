@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Ask a Question
+    url: https://github.com/Arora-Sir/Gravity-Bridge/discussions
+    about: Ask questions, get help, or chat with the community.
+  - name: 🔒 Report a Security Vulnerability
+    url: https://github.com/Arora-Sir/Gravity-Bridge/security/advisories/new
+    about: Please report security concerns privately rather than opening public issues.

@@ -1,0 +1,46 @@
+name: 🐛 Bug Report
+description: File a bug report to help us improve GravityBridge
+title: "[BUG]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this issue! Please provide as much detail as possible so we can reproduce and fix it.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description of the Bug
+      description: A clear and concise explanation of what the bug is.
+      placeholder: e.g., The connection page does not update device names when reloading.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How did you encounter this bug? Include commands run or configurations changed.
+      placeholder: |
+        1. Run 'python proxy.py'
+        2. Navigate to 'http://<IP>:54321/upload'
+        3. Tap on the Connections tab
+        4. See that...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Terminal / Browser Logs
+      description: Paste any error messages from the Python console or browser developer tools.
+      placeholder: |
+        [+] Found active language server port: 65167
+        [!] Error: ...
+      render: shell
+  - type: input
+    id: environment
+    attributes:
+      label: Environment Details
+      description: OS version, Python version, Phone OS, and browser used.
+      placeholder: e.g., Host: Windows 11 | Phone: Samsung S22 (Android 14) | Browser: Brave Mobile
+    validations:
+      required: true

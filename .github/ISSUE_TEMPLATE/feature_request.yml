@@ -1,0 +1,31 @@
+name: 💡 Feature Request
+description: Propose a new feature or enhancement for GravityBridge
+title: "[FEATURE]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea to make GravityBridge better? Suggest it here!
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Describe the Feature
+      description: What should this feature do? How does it improve the user experience?
+      placeholder: e.g., Add support for Bluetooth file transfer fallback when Wi-Fi is weak.
+    validations:
+      required: true
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case / Context
+      description: Explain the problem this feature solves.
+      placeholder: e.g., When traveling, router Wi-Fi is not available, so Bluetooth would be a useful backup.
+    validations:
+      required: true
+  - type: textarea
+    id: alternative-solutions
+    attributes:
+      label: Alternatives Considered
+      description: Describe any workarounds or alternative solutions you've considered.
+      placeholder: e.g., Using mobile hotspots instead.
