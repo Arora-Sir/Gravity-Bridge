@@ -414,6 +414,7 @@ def get_floating_button_js():
     """
     return '''
 (function() {
+  if (window.self !== window.top) return; // Prevent double injection inside iframes
   if (document.getElementById('gb-nav')) return; // already injected
 
   var ICON_B64 = "''' + ICON_B64 + '''";
