@@ -396,6 +396,8 @@ The `PROXY_PORT` in your `.env` is above `65535` (the maximum valid port). Set a
 
 ## License
 
-MIT License. Feel free to fork and adapt.
+This project is licensed under the [MIT License](LICENSE).
+
+Copyright (c) 2025 Mohit Arora
 
 ---
