@@ -1,10 +1,36 @@
-# GravityBridge
+# GravityBridge: Symmetrical Mobile Portal for Antigravity 2.0
 
-> **Wireless file & folder transfer portal between your Android phone and Windows laptop — works over local Wi-Fi, Tailscale VPN, or mobile data.**
+> **Run desktop AI agents directly from your phone while browsing and transferring phone storage — all in a unified mobile interface.**
 
 ![GravityBridge Mobile Interface Collage](static/collage.jpg)
 
-GravityBridge is a Python-based HTTP reverse proxy that runs on your laptop and serves a beautiful dark-themed web portal accessible from your phone's browser. It lets you browse your phone's internal storage, select folders/files with checkboxes, and transfer them wirelessly to your laptop — without USB cables or cloud services.
+---
+
+## Why This Project Exists
+
+Standard cloud-based AI chat interfaces (like Gemini Web or ChatGPT) are completely isolated from your local development environment. Antigravity 2.0 runs locally on your laptop, giving the AI agent full host capabilities — direct file read/write, AST-based codebase parsing, terminal command execution, and background task scheduling.
+
+GravityBridge acts as a local reverse proxy that exposes this entire agentic environment securely to your phone's browser. By embedding the desktop Antigravity page inside a responsive overlay on top of an ADB-driven Phone Drive explorer, you gain simultaneous access to both your phone's storage and your laptop's AI workspace.
+
+### Gemini Web vs. Antigravity 2.0 (via GravityBridge)
+
+| Feature | Standard Gemini Web/App | Antigravity 2.0 + GravityBridge |
+|---|---|---|
+| **Local File Operations** | ❌ None (sandboxed file uploads only) |  Direct laptop workspace read/write & edits |
+| **AST Codebase Analysis** | ❌ Limited context / single-file |  Deep repository analysis & Graphify AST parsing |
+| **Command Line Execution** | ❌ No host terminal access |  Real-time shell command execution (git, tests, builds) |
+| **Symmetrical Mobile Access** | ❌ Single isolated chat window |  Simultaneous phone storage & local PC agent access |
+| **Agentic Automation** | ❌ One-off prompt responses |  Background task runner, timer & cron scheduling |
+| **Data Privacy & Hosting** | ❌ Sent to cloud servers |  100% locally hosted (via Tailscale or Wi-Fi) |
+
+---
+
+## Core Motivational Workflows
+
+* 🛋️ **Couch Coding**: Control code generation, verify git status, and run terminal tests directly from your phone browser on your couch.
+* 📸 **Instant UI Debugging**: Snap a screenshot of a mobile layout bug, pull it to your laptop via ADB in one click, and let the agent fix styling bugs instantly.
+* 📂 **Wireless File Hub**: Browse your phone's `/sdcard` in real-time, select files/directories with checkboxes, and pull them directly into local laptop drives.
+* 🔄 **Symmetrical Multi-Tasking**: Monitor long-running agent tasks or shell logs in the chat panel while keeping your phone directory explorer fully active.
 
 ---
 
