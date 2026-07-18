@@ -241,6 +241,9 @@ The proxy auto-detects phone IP and conversation paths at runtime — no manual 
 
 ## Security
 
+> [!WARNING]
+> GravityBridge exposes powerful local capabilities (local read/write file access, shell command execution, and Electron debugger control). It is strictly designed for **private, local development**. Never expose this port to the public internet, use a weak lock-screen PIN, or run the server on untrusted public Wi-Fi networks without active Tailscale WireGuard encryption.
+
 GravityBridge uses a **PIN-based lock screen** to protect all routes from unauthorized access.
 
 ### What is Protected
@@ -295,6 +298,21 @@ An attacker repeatedly tries different PINs. After 5 failed attempts, their IP g
 You screenshot your Tailscale dashboard and your `100.x.x.x` IP is visible. Someone outside your tailnet tries `http://100.x.x.x:15842`. Tailscale won't route it.
 
 **Mitigation:** Never enable Tailscale subnet routing for the device running GravityBridge.
+
+#### Scenario 4 — Session cookie sniffing on open local networks (unencrypted HTTP)
+An attacker on the same local Wi-Fi captures your network packets, extracts the unencrypted `session` cookie, and uses it to clone your authenticated browser session.
+
+**Mitigation:** Only run the proxy on trusted networks, or use Tailscale (which creates an encrypted WireGuard tunnel, making packet sniffing impossible).
+
+#### Scenario 5 — Chrome DevTools Protocol (CDP) execution (Remote Code Execution)
+An attacker manages to hijack your session (via sniffing or a weak PIN) and targets the `/` route which proxies requests to the Electron debugger port on localhost. They send commands to write local files or run system terminals.
+
+**Mitigation:** Always configure a strong, unique `AUTH_PIN` passphrase (12+ characters) in `.env` to prevent brute force, and turn off the proxy process when not in use.
+
+#### Scenario 6 — ADB Wireless Debugging port scanning
+An attacker on your local network runs a port scan, finds the phone's open ADB Wireless Debugging port (`5555`), and attempts to run `adb connect` to bypass the proxy entirely.
+
+**Mitigation:** Android has built-in connection guarding. **Always reject** any unexpected authorization popup prompts on your phone.
 
 ### Recommended Security Practices
 
