@@ -1573,10 +1573,8 @@ def get_upload_page_html():
 <body>
     <!-- Hidden iframe preloads chat in background after auth -->
     <iframe id="gb-chat-preload" src="/" style="display:none; position:fixed; top:52px; left:0; width:100%; height:calc(100% - 104px); z-index:999998; border:none; background:#0d0e14;"></iframe>
-    <!-- Upload content wrapper -->
-    <div id="gb-upload-content">
     <!-- Top Sticky Header Bar -->
-    <header class="gb-top-bar">
+    <header class="gb-top-bar gb-upload-view">
         <div style="display: flex; align-items: center; gap: 10px;">
             <img src="data:image/svg+xml;base64,__ICON_B64__" style="width: 28px; height: 28px; border-radius: 50%; display: block;" alt="GravityBridge Logo" />
             <div style="display: flex; flex-direction: column; line-height: 1.15;">
@@ -1594,7 +1592,7 @@ def get_upload_page_html():
         </div>
     </header>
 
-    <div class="container" style="padding-bottom:52px;">
+    <div class="container gb-upload-view" style="padding-bottom:52px;">
 
         
         <div id="success-alert" class="alert alert-success"></div>
@@ -2402,14 +2400,13 @@ def get_upload_page_html():
                 window.top.postMessage('gb:back-to-chat', '*');
                 return;
             }
-            // Show preloaded chat iframe, hide upload content
+            // Show preloaded chat iframe, hide upload elements
             var chatFrame = document.getElementById('gb-chat-preload');
-            var uploadContent = document.getElementById('gb-upload-content');
             var chatTab = document.getElementById('gb-nav-chat');
             var uploadTab = document.getElementById('gb-nav-upload');
-            if (chatFrame && uploadContent) {
+            if (chatFrame) {
                 chatFrame.style.display = 'block';
-                uploadContent.style.display = 'none';
+                document.querySelectorAll('.gb-upload-view').forEach(function(el) { el.style.display = 'none'; });
                 chatTab.classList.add('active');
                 uploadTab.classList.remove('active');
             } else {
@@ -2419,12 +2416,11 @@ def get_upload_page_html():
 
         function gbSwitchToUpload() {
             var chatFrame = document.getElementById('gb-chat-preload');
-            var uploadContent = document.getElementById('gb-upload-content');
             var chatTab = document.getElementById('gb-nav-chat');
             var uploadTab = document.getElementById('gb-nav-upload');
-            if (chatFrame && uploadContent) {
+            if (chatFrame) {
                 chatFrame.style.display = 'none';
-                uploadContent.style.display = 'block';
+                document.querySelectorAll('.gb-upload-view').forEach(function(el) { el.style.display = ''; });
                 uploadTab.classList.add('active');
                 chatTab.classList.remove('active');
             }
@@ -2432,7 +2428,6 @@ def get_upload_page_html():
 
         function gbGoBack() { gbSwitchToChat(); }
     </script>
-    </div><!-- /gb-upload-content -->
     <!-- Bottom nav bar (Phone Drive tab is active) -->
     <nav class="gb-nav-bar" id="gb-nav" role="navigation" aria-label="GravityBridge navigation">
         <button class="gb-nav-tab" id="gb-nav-chat" aria-label="Chat" onclick="gbGoBack()">
