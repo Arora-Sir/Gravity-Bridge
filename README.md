@@ -292,12 +292,12 @@ Priority 3 -- NICE TO HAVE
 Find your Tailscale IP:
 ```powershell
 tailscale ip -4
-# Output: 100.91.122.7 (example)
+# Output: 100.100.100.100 (example)
 ```
 
 Then in `proxy.py`:
 ```python
-LISTEN_HOST = "100.91.122.7"  # Only reachable via Tailscale, not local Wi-Fi
+LISTEN_HOST = "100.100.100.100"  # Only reachable via Tailscale, not local Wi-Fi
 ```
 
 This means the portal is **only accessible from within your Tailscale network** -- zero exposure on local Wi-Fi, public internet, or hotspots.
