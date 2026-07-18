@@ -439,13 +439,16 @@ def get_floating_button_js():
     '.gb-top-logo-name{font-weight:800;font-size:0.85rem;color:#fff;letter-spacing:-0.2px;}',
     '.gb-top-logo-sub{font-size:0.6rem;color:#fbbf24;font-weight:700;letter-spacing:0.5px;}',
     '.gb-top-right{display:flex;align-items:center;gap:8px;}',
-    '.gb-ip-badge{background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.2);padding:3px 8px;border-radius:12px;font-size:0.68rem;font-weight:600;font-family:inherit;}',
-    '.gb-logout-btn{background:rgba(239,68,68,0.08);color:#ef4444;border:1px solid rgba(239,68,68,0.15);padding:5px 10px;font-size:0.72rem;font-weight:600;border-radius:6px;cursor:pointer;font-family:inherit;transition:all 0.2s;}',
+    '@keyframes gbHeartBeat{0%,100%{transform:scale(1)}15%{transform:scale(1.25)}30%{transform:scale(1)}45%{transform:scale(1.15)}60%{transform:scale(1)}}',
+    '.gb-ip-badge{background:rgba(251,191,36,0.08);color:#fbbf24;border:1px solid rgba(251,191,36,0.18);padding:2px 7px;border-radius:10px;font-size:0.62rem;font-weight:700;font-family:inherit;white-space:nowrap;}',
+    '.gb-logout-btn{background:rgba(239,68,68,0.08);color:#ef4444;border:1px solid rgba(239,68,68,0.15);padding:4px 9px;font-size:0.68rem;font-weight:600;border-radius:6px;cursor:pointer;font-family:inherit;transition:all 0.2s;white-space:nowrap;}',
     '.gb-logout-btn:hover{background:#ef4444;color:#fff;}',
-    '.gb-sponsor-btn{background:rgba(217,119,6,0.1);color:#fbbf24;border:1px solid rgba(217,119,6,0.25);padding:5px 10px;font-size:0.72rem;font-weight:600;border-radius:6px;cursor:pointer;font-family:inherit;margin-right:4px;transition:all 0.2s;}',
+    '.gb-sponsor-btn{background:rgba(217,119,6,0.12);color:#fbbf24;border:1px solid rgba(217,119,6,0.25);padding:4px 9px;font-size:0.68rem;font-weight:600;border-radius:6px;cursor:pointer;font-family:inherit;transition:all 0.2s;white-space:nowrap;display:inline-flex;align-items:center;gap:3px;}',
     '.gb-sponsor-btn:hover{background:#d97706;color:#fff;border-color:#d97706;box-shadow:0 0 8px rgba(217,119,6,0.3);}',
+    '.gb-sponsor-btn .gb-heart{display:inline-block;animation:gbHeartBeat 1.8s ease-in-out infinite;}',
+    '.gb-top-right{display:flex!important;align-items:center!important;gap:6px!important;flex-shrink:0!important;}',
     '#gb-nav{position:fixed!important;bottom:0!important;left:0!important;right:0!important;z-index:2147483647!important;display:flex!important;height:52px!important;background:#0d0e14!important;border-top:1px solid rgba(255,255,255,0.09)!important;animation:gbSlideUp 0.25s ease-out both!important;}',
-    '.gb-tab{flex:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;cursor:pointer!important;border:none!important;background:transparent!important;color:rgba(255,255,255,0.35)!important;font-size:0.6rem!important;font-weight:600!important;letter-spacing:0.04em!important;padding:5px 0!important;font-family:Outfit,system-ui,sans-serif!important;}',
+    '.gb-tab{flex:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;cursor:pointer!important;border:none!important;background:transparent!important;color:rgba(255,255,255,0.35)!important;font-size:0.6rem!important;font-weight:600!important;letter-spacing:0.04em!important;padding:5px 0!important;font-family:Outfit,system-ui,sans-serif!important;min-width:0!important;width:50%!important;}',
     '.gb-tab .icon{font-size:1.1rem!important;line-height:1!important;display:block!important;}',
     '.gb-tab.active{color:#fff!important;background:rgba(217,119,6,0.2)!important;}',
     '.gb-tab.active .icon{filter:drop-shadow(0 0 5px rgba(217,119,6,0.9))!important;}',
@@ -467,10 +470,10 @@ def get_floating_button_js():
       '</div>',
     '</div>',
     '<div class="gb-top-right">',
-      '<span class="gb-ip-badge" id="gb-top-ip">IP: ...</span>',
-      '<button class="gb-sponsor-btn" id="gb-top-sponsor" title="Support Project">❤️ Support</button>',
+      '<span class="gb-ip-badge" id="gb-top-ip">...</span>',
+      '<button class="gb-sponsor-btn" id="gb-top-sponsor" title="Support the project"><span class="gb-heart">❤️</span> Support</button>',
       '<form method="POST" action="/auth/logout" style="margin:0">',
-        '<button type="submit" class="gb-logout-btn">&#128275; Logout</button>',
+        '<button type="submit" class="gb-logout-btn">&#128275;</button>',
       '</form>',
     '</div>'
   ].join('');
@@ -483,51 +486,28 @@ def get_floating_button_js():
   // --- Sponsor Modal ---
   var sponsorModal = document.createElement('div');
   sponsorModal.id = 'gb-sponsor-modal';
-  sponsorModal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:2147483647;font-family:Outfit,system-ui,sans-serif;box-sizing:border-box;';
+  sponsorModal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:2147483647;font-family:Outfit,system-ui,sans-serif;box-sizing:border-box;padding:16px;';
   sponsorModal.innerHTML = [
-    '<div style="background:#0e1318;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:24px;width:92%;max-width:390px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.85);text-align:center;box-sizing:border-box;animation:gbSlideUp 0.2s ease-out;">',
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">',
-        '<span style="font-weight:800;font-size:1.15rem;color:#fff;letter-spacing:-0.2px;">Support GravityBridge</span>',
-        '<span id="gb-sponsor-close" style="font-size:1.4rem;cursor:pointer;color:rgba(255,255,255,0.4);font-weight:bold;line-height:1;transition:color 0.2s;">&times;</span>',
+    '<div style="background:linear-gradient(160deg,#0e1318 0%,#131a22 100%);border:1px solid rgba(255,255,255,0.09);border-radius:24px;padding:28px 24px;width:100%;max-width:380px;box-shadow:0 30px 60px -12px rgba(0,0,0,0.9);text-align:center;box-sizing:border-box;animation:gbSlideUp 0.25s ease-out;">',
+      '<div style="font-size:2.5rem;margin-bottom:10px;animation:gbHeartBeat 1.8s ease-in-out infinite;">❤️</div>',
+      '<div style="font-weight:800;font-size:1.2rem;color:#fff;letter-spacing:-0.3px;margin-bottom:8px;">Support GravityBridge</div>',
+      '<p style="font-size:0.78rem;color:rgba(255,255,255,0.55);line-height:1.5;margin-bottom:24px;">If this tool saves you time, consider buying me a coffee. One tap opens your payment app directly.</p>',
+      '<div style="display:flex;gap:12px;justify-content:center;margin-bottom:20px;">',
+        '<a id="gb-pay-upi" href="upi://pay?pa=mohit1998arora@yescred&pn=Mohit%20Arora&cu=INR&tn=GravityBridge" style="flex:1;text-decoration:none;background:linear-gradient(135deg,rgba(217,119,6,0.2),rgba(251,191,36,0.1));border:1px solid rgba(217,119,6,0.35);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all 0.2s;cursor:pointer;">',
+          '<span style="font-size:1.6rem;">🇮🇳</span>',
+          '<span style="font-weight:700;font-size:0.82rem;color:#fbbf24;">Pay via UPI</span>',
+          '<span style="font-size:0.65rem;color:rgba(255,255,255,0.4);">GPay / PhonePe / Cred</span>',
+        '</a>',
+        '<a id="gb-pay-paypal" href="https://paypal.me/arorasir" target="_blank" rel="noopener" style="flex:1;text-decoration:none;background:linear-gradient(135deg,rgba(0,112,201,0.2),rgba(0,148,255,0.1));border:1px solid rgba(0,148,255,0.3);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all 0.2s;cursor:pointer;">',
+          '<span style="font-size:1.6rem;">💳</span>',
+          '<span style="font-weight:700;font-size:0.82rem;color:#60a5fa;">PayPal</span>',
+          '<span style="font-size:0.65rem;color:rgba(255,255,255,0.4);">paypal.me/arorasir</span>',
+        '</a>',
       '</div>',
-      '<p style="font-size:0.8rem;color:rgba(255,255,255,0.65);line-height:1.45;margin-bottom:20px;text-align:left;">If GravityBridge helps you wire code or sync assets, support the project! Scan the QR code or copy the UPI IDs to transfer directly.</p>',
-      '<div style="background:#fff;padding:12px;border-radius:16px;display:inline-block;margin-bottom:20px;box-shadow:0 8px 16px rgba(0,0,0,0.25);">',
-        '<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=a.mohit1998@okhdfcbank%26pn=Mohit%20Arora%26cu=INR" style="width:160px;height:160px;display:block;" alt="UPI QR Code" />',
-      '</div>',
-      '<div style="display:flex;flex-direction:column;gap:8px;text-align:left;">',
-        '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">',
-          '<div>',
-            '<span style="font-size:0.58rem;color:rgba(255,255,255,0.4);display:block;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;">UPI ID 1</span>',
-            '<span style="font-size:0.75rem;color:#fbbf24;font-family:monospace;font-weight:600;">a.mohit1998@okhdfcbank</span>',
-          '</div>',
-          '<button id="gb-copy-upi-1" style="background:rgba(251,191,36,0.1);color:#fbbf24;border:none;padding:4px 8px;font-size:0.65rem;border-radius:4px;cursor:pointer;font-weight:600;font-family:inherit;transition:all 0.2s;">Copy</button>',
-        '</div>',
-        '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">',
-          '<div>',
-            '<span style="font-size:0.58rem;color:rgba(255,255,255,0.4);display:block;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;">UPI ID 2</span>',
-            '<span style="font-size:0.75rem;color:#fbbf24;font-family:monospace;font-weight:600;">mohit1998arora@yescred</span>',
-          '</div>',
-          '<button id="gb-copy-upi-2" style="background:rgba(251,191,36,0.1);color:#fbbf24;border:none;padding:4px 8px;font-size:0.65rem;border-radius:4px;cursor:pointer;font-weight:600;font-family:inherit;transition:all 0.2s;">Copy</button>',
-        '</div>',
-      '</div>',
+      '<button id="gb-sponsor-close" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);border-radius:10px;padding:8px 20px;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;">Maybe later</button>',
     '</div>'
   ].join('');
   document.body.appendChild(sponsorModal);
-
-  // Copy helper
-  function copyText(text, btn) {
-    navigator.clipboard.writeText(text).then(function() {
-      var orig = btn.textContent;
-      btn.textContent = 'Copied!';
-      btn.style.background = 'rgba(16,185,129,0.15)';
-      btn.style.color = '#10b981';
-      setTimeout(function() {
-        btn.textContent = orig;
-        btn.style.background = 'rgba(251,191,36,0.1)';
-        btn.style.color = '#fbbf24';
-      }, 1200);
-    });
-  }
 
   // --- Phone Drive Overlay iframe ---
   var overlay = document.createElement('div');
@@ -575,12 +555,6 @@ def get_floating_button_js():
   });
   sponsorModal.addEventListener('click', function(e) {
     if (e.target === sponsorModal) sponsorModal.style.display = 'none';
-  });
-  document.getElementById('gb-copy-upi-1').addEventListener('click', function() {
-    copyText('a.mohit1998@okhdfcbank', this);
-  });
-  document.getElementById('gb-copy-upi-2').addEventListener('click', function() {
-    copyText('mohit1998arora@yescred', this);
   });
 
   tabChat.addEventListener('click', function() { setActive('chat'); });
@@ -1331,8 +1305,8 @@ def get_upload_page_html():
         }
 
         .field-group {
-            margin-bottom: 20px;
-            margin-top: 24px;
+            margin-bottom: 14px;
+            margin-top: 14px;
         }
 
         label {
@@ -1402,8 +1376,8 @@ def get_upload_page_html():
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-            margin-top: 24px;
+            margin-bottom: 8px;
+            margin-top: 14px;
         }
 
         .queue-title {
@@ -1547,11 +1521,11 @@ def get_upload_page_html():
         }
 
         .debug-console {
-            margin-top: 24px;
+            margin-top: 8px;
             background: #000000;
             border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 14px;
+            padding: 12px;
             max-height: 120px;
             overflow-y: auto;
             font-family: monospace;
@@ -1565,6 +1539,7 @@ def get_upload_page_html():
             letter-spacing: 0.5px;
             color: var(--text-muted);
             margin-bottom: 4px;
+            margin-top: 14px;
             font-weight: 600;
         }
 
@@ -1682,13 +1657,11 @@ def get_upload_page_html():
                 <span style="font-size: 0.65rem; color: var(--amber); font-weight: 700; letter-spacing: 0.5px;">WIRELESS DRIVE</span>
             </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span class="phone-ip-badge" id="phone-ip-badge" style="margin: 0; font-size: 0.7rem; padding: 3px 8px;">IP: Connecting...</span>
-            <button class="sponsor-btn" id="gb-top-sponsor" title="Support Project">❤️ Support</button>
+        <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+            <span class="phone-ip-badge" id="phone-ip-badge" style="margin: 0; font-size: 0.62rem; padding: 2px 7px;">IP: ...</span>
+            <button class="sponsor-btn" id="gb-top-sponsor" title="Support the project" style="display:inline-flex;align-items:center;gap:3px;padding:4px 9px;font-size:0.68rem;"><span style="display:inline-block;animation:gbHeartBeat 1.8s ease-in-out infinite;">❤️</span> Support</button>
             <form method="POST" action="/auth/logout" style="margin: 0;">
-                <button type="submit" class="logout-btn" title="Logout session">
-                    &#128275; Logout
-                </button>
+                <button type="submit" class="logout-btn" title="Logout session" style="padding:4px 9px;font-size:0.68rem;">&#128275;</button>
             </form>
         </div>
     </header>
@@ -2545,32 +2518,24 @@ def get_upload_page_html():
     <div id="gb-toast-container"></div>
 
     <!-- Sponsor Modal -->
-    <div id="gb-sponsor-modal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:2147483647;font-family:Outfit,system-ui,sans-serif;box-sizing:border-box;">
-        <div style="background:#0e1318;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:24px;width:92%;max-width:390px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.85);text-align:center;box-sizing:border-box;animation:gbSlideUp 0.2s ease-out;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-                <span style="font-weight:800;font-size:1.15rem;color:#fff;letter-spacing:-0.2px;">Support GravityBridge</span>
-                <span id="gb-sponsor-close" style="font-size:1.4rem;cursor:pointer;color:rgba(255,255,255,0.4);font-weight:bold;line-height:1;transition:color 0.2s;">&times;</span>
+    <div id="gb-sponsor-modal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:2147483647;font-family:Outfit,system-ui,sans-serif;box-sizing:border-box;padding:16px;">
+        <div style="background:linear-gradient(160deg,#0e1318 0%,#131a22 100%);border:1px solid rgba(255,255,255,0.09);border-radius:24px;padding:28px 24px;width:100%;max-width:380px;box-shadow:0 30px 60px -12px rgba(0,0,0,0.9);text-align:center;box-sizing:border-box;animation:gbSlideUp 0.25s ease-out;">
+            <div style="font-size:2.5rem;margin-bottom:10px;animation:gbHeartBeat 1.8s ease-in-out infinite;">❤️</div>
+            <div style="font-weight:800;font-size:1.2rem;color:#fff;letter-spacing:-0.3px;margin-bottom:8px;">Support GravityBridge</div>
+            <p style="font-size:0.78rem;color:rgba(255,255,255,0.55);line-height:1.5;margin-bottom:24px;">If this tool saves you time, consider buying me a coffee. One tap opens your payment app directly.</p>
+            <div style="display:flex;gap:12px;justify-content:center;margin-bottom:20px;">
+                <a href="upi://pay?pa=mohit1998arora@yescred&pn=Mohit%20Arora&cu=INR&tn=GravityBridge" style="flex:1;text-decoration:none;background:linear-gradient(135deg,rgba(217,119,6,0.2),rgba(251,191,36,0.1));border:1px solid rgba(217,119,6,0.35);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all 0.2s;cursor:pointer;">
+                    <span style="font-size:1.6rem;">🇮🇳</span>
+                    <span style="font-weight:700;font-size:0.82rem;color:#fbbf24;">Pay via UPI</span>
+                    <span style="font-size:0.65rem;color:rgba(255,255,255,0.4);">GPay / PhonePe / Cred</span>
+                </a>
+                <a href="https://paypal.me/arorasir" target="_blank" rel="noopener" style="flex:1;text-decoration:none;background:linear-gradient(135deg,rgba(0,112,201,0.2),rgba(0,148,255,0.1));border:1px solid rgba(0,148,255,0.3);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all 0.2s;cursor:pointer;">
+                    <span style="font-size:1.6rem;">💳</span>
+                    <span style="font-weight:700;font-size:0.82rem;color:#60a5fa;">PayPal</span>
+                    <span style="font-size:0.65rem;color:rgba(255,255,255,0.4);">paypal.me/arorasir</span>
+                </a>
             </div>
-            <p style="font-size:0.8rem;color:rgba(255,255,255,0.65);line-height:1.45;margin-bottom:20px;text-align:left;">If GravityBridge helps you wire code or sync assets, support the project! Scan the QR code or copy the UPI IDs to transfer directly.</p>
-            <div style="background:#fff;padding:12px;border-radius:16px;display:inline-block;margin-bottom:20px;box-shadow:0 8px 16px rgba(0,0,0,0.25);">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=a.mohit1998@okhdfcbank%26pn=Mohit%20Arora%26cu=INR" style="width:160px;height:160px;display:block;" alt="UPI QR Code" />
-            </div>
-            <div style="display:flex;flex-direction:column;gap:8px;text-align:left;">
-                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">
-                    <div>
-                        <span style="font-size:0.58rem;color:rgba(255,255,255,0.4);display:block;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;">UPI ID 1</span>
-                        <span style="font-size:0.75rem;color:#fbbf24;font-family:monospace;font-weight:600;">a.mohit1998@okhdfcbank</span>
-                    </div>
-                    <button id="gb-copy-upi-1" style="background:rgba(251,191,36,0.1);color:#fbbf24;border:none;padding:4px 8px;font-size:0.65rem;border-radius:4px;cursor:pointer;font-weight:600;font-family:inherit;transition:all 0.2s;">Copy</button>
-                </div>
-                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">
-                    <div>
-                        <span style="font-size:0.58rem;color:rgba(255,255,255,0.4);display:block;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;">UPI ID 2</span>
-                        <span style="font-size:0.75rem;color:#fbbf24;font-family:monospace;font-weight:600;">mohit1998arora@yescred</span>
-                    </div>
-                    <button id="gb-copy-upi-2" style="background:rgba(251,191,36,0.1);color:#fbbf24;border:none;padding:4px 8px;font-size:0.65rem;border-radius:4px;cursor:pointer;font-weight:600;font-family:inherit;transition:all 0.2s;">Copy</button>
-                </div>
-            </div>
+            <button id="gb-sponsor-close" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);border-radius:10px;padding:8px 20px;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;">Maybe later</button>
         </div>
     </div>
 
@@ -2583,26 +2548,6 @@ def get_upload_page_html():
         });
         document.getElementById('gb-sponsor-modal').addEventListener('click', function(e) {
             if (e.target === this) this.style.display = 'none';
-        });
-        
-        function copyText(text, btn) {
-            navigator.clipboard.writeText(text).then(function() {
-                var orig = btn.textContent;
-                btn.textContent = 'Copied!';
-                btn.style.background = 'rgba(16,185,129,0.15)';
-                btn.style.color = '#10b981';
-                setTimeout(function() {
-                    btn.textContent = orig;
-                    btn.style.background = 'rgba(251,191,36,0.1)';
-                    btn.style.color = '#fbbf24';
-                }, 1200);
-            });
-        }
-        document.getElementById('gb-copy-upi-1').addEventListener('click', function() {
-            copyText('a.mohit1998@okhdfcbank', this);
-        });
-        document.getElementById('gb-copy-upi-2').addEventListener('click', function() {
-            copyText('mohit1998arora@yescred', this);
         });
     </script>
 

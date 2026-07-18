@@ -2,4 +2,6 @@
 # ==================================
 
 github: Arora-Sir
-custom: ['upi://pay?pa=a.mohit1998@okhdfcbank&pn=Mohit%20Arora&cu=INR', 'upi://pay?pa=mohit1998arora@yescred&pn=Mohit%20Arora&cu=INR']
+patreon: # (not configured)
+buy_me_a_coffee: # (not configured)
+custom: ['https://paypal.me/arorasir', 'upi://pay?pa=mohit1998arora@yescred&pn=Mohit%20Arora&cu=INR']
