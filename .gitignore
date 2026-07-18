@@ -6,6 +6,7 @@
 .env
 config.json
 start.bat
+FEATURES.md
 
 # ── Uploaded Files ────────────────────────────────────────────
 # All phone/device transfers land here -- personal data, never commit

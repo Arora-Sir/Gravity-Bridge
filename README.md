@@ -100,6 +100,9 @@ All paths and personal identifiers are configured via `.env` (nothing is hardcod
 
 ### Step 3: Run the proxy
 
+> [!IMPORTANT]
+> **Antigravity 2.0 must already be running on your Windows machine before this step.** GravityBridge works by dynamically detecting the Antigravity local server port and forwarding all chat traffic through it. Without Antigravity running, the proxy will start but the Chat tab will not function. Keep Antigravity running at all times while using GravityBridge from your phone.
+
 ```powershell
 python -u proxy.py
 ```
