@@ -185,10 +185,10 @@ def _send_html(client_socket, html, status="200 OK", extra_headers=""):
     except: pass
     client_socket.close()
 
-def _send_json(client_socket, data, extra_headers=""):
+def _send_json(client_socket, data, extra_headers="", status="200 OK"):
     body = json.dumps(data).encode('utf-8')
     resp = (
-        f"HTTP/1.1 200 OK\r\n"
+        f"HTTP/1.1 {status}\r\n"
         f"Content-Type: application/json\r\n"
         f"Content-Length: {len(body)}\r\n"
         f"{extra_headers}"
@@ -318,23 +318,30 @@ def find_language_server_port():
 
 def get_active_conversation_path():
     global LAST_ACTIVE_PATH
-    debug_port = find_electron_debug_port()
-    if not debug_port:
-        return LAST_ACTIVE_PATH
     try:
-        url = f"http://127.0.0.1:{debug_port}/json"
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=1) as response:
-            data = json.loads(response.read().decode('utf-8', errors='ignore'))
-            for page in data:
-                page_url = page.get("url", "")
-                if page.get("type") == "page" and "/c/" in page_url:
-                    match = re.search(r'(/c/[a-f0-9\-]+)', page_url)
-                    if match:
-                        LAST_ACTIVE_PATH = match.group(1)
-                        return LAST_ACTIVE_PATH
-    except:
-        pass
+        pids = get_pids_by_name("Antigravity")
+        ports = find_ports_by_pids(pids)
+        for port in sorted(ports, reverse=True):
+            if port == PROXY_PORT:
+                continue
+            try:
+                url = f"http://127.0.0.1:{port}/json"
+                req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req, timeout=0.5) as response:
+                    data = json.loads(response.read().decode('utf-8', errors='ignore'))
+                    if isinstance(data, list):
+                        for page in data:
+                            page_url = page.get("url", "")
+                            if page.get("type") == "page" and "/c/" in page_url:
+                                idx = page_url.find('/c/')
+                                if idx != -1:
+                                    path = page_url[idx:]
+                                    LAST_ACTIVE_PATH = path
+                                    return path
+            except:
+                pass
+    except Exception as e:
+        print(f"[!] Error in get_active_conversation_path: {e}", flush=True)
     return LAST_ACTIVE_PATH
 
 def get_native_storage_js():
@@ -407,7 +414,6 @@ def get_floating_button_js():
     """
     return '''
 (function() {
-  if (window.self !== window.top) return; // Prevent double injection inside iframes
   if (document.getElementById('gb-nav')) return; // already injected
 
   var ICON_B64 = "''' + ICON_B64 + '''";
@@ -1572,7 +1578,7 @@ def get_upload_page_html():
 </head>
 <body>
     <!-- Hidden iframe preloads chat in background after auth -->
-    <iframe id="gb-chat-preload" src="/" style="display:none; position:fixed; top:52px; left:0; width:100%; height:calc(100% - 104px); z-index:999998; border:none; background:#0d0e14;"></iframe>
+    <iframe id="gb-chat-preload" src="/" style="display:none; position:fixed; top:56px; left:0; width:100%; height:calc(100% - 108px); z-index:999998; border:none; background:#0d0e14;"></iframe>
     <!-- Top Sticky Header Bar -->
     <header class="gb-top-bar gb-upload-view">
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -2400,13 +2406,14 @@ def get_upload_page_html():
                 window.top.postMessage('gb:back-to-chat', '*');
                 return;
             }
-            // Show preloaded chat iframe, hide upload elements
+            // Show preloaded chat iframe in middle section, keep top/bottom bar visible
             var chatFrame = document.getElementById('gb-chat-preload');
             var chatTab = document.getElementById('gb-nav-chat');
             var uploadTab = document.getElementById('gb-nav-upload');
             if (chatFrame) {
                 chatFrame.style.display = 'block';
-                document.querySelectorAll('.gb-upload-view').forEach(function(el) { el.style.display = 'none'; });
+                chatFrame.style.top = '56px';
+                chatFrame.style.height = 'calc(100% - 108px)';
                 chatTab.classList.add('active');
                 uploadTab.classList.remove('active');
             } else {
@@ -2420,7 +2427,6 @@ def get_upload_page_html():
             var uploadTab = document.getElementById('gb-nav-upload');
             if (chatFrame) {
                 chatFrame.style.display = 'none';
-                document.querySelectorAll('.gb-upload-view').forEach(function(el) { el.style.display = ''; });
                 uploadTab.classList.add('active');
                 chatTab.classList.remove('active');
             }
@@ -2429,7 +2435,7 @@ def get_upload_page_html():
         function gbGoBack() { gbSwitchToChat(); }
     </script>
     <!-- Bottom nav bar (Phone Drive tab is active) -->
-    <nav class="gb-nav-bar" id="gb-nav" role="navigation" aria-label="GravityBridge navigation">
+    <nav class="gb-nav-bar gb-upload-view" id="gb-nav" role="navigation" aria-label="GravityBridge navigation">
         <button class="gb-nav-tab" id="gb-nav-chat" aria-label="Chat" onclick="gbGoBack()">
             <span class="icon">&#128172;</span>
             <span>Chat</span>
@@ -3138,8 +3144,10 @@ def handle_client(client_socket, target_port):
                 client_socket.close()
                 return
 
-        # Detect active streaming requests
-        is_stream = "/JetboxSubscribeTo" in request_text
+        # Detect active streaming requests (SSE, WebSockets, gRPC streams)
+        is_websocket = "upgrade: websocket" in request_text.lower()
+        is_sse = "text/event-stream" in request_text.lower()
+        is_stream = ("Stream" in request_text) or ("Subscribe" in request_text) or is_websocket or is_sse
         is_main_js = "GET /main.js" in request_text
 
         # Extract CORS origins
