@@ -470,10 +470,9 @@ def get_floating_button_js():
       '</div>',
     '</div>',
     '<div class="gb-top-right">',
-      '<span class="gb-ip-badge" id="gb-top-ip">...</span>',
       '<button class="gb-sponsor-btn" id="gb-top-sponsor" title="Support the project"><span class="gb-heart">❤️</span> Support</button>',
-      '<form method="POST" action="/auth/logout" style="margin:0">',
-        '<button type="submit" class="gb-logout-btn">&#128275;</button>',
+      '<form method="POST" action="/auth/logout" style="margin:0;padding-right:6px;">',
+        '<button type="submit" class="gb-logout-btn">&#128275; Logout</button>',
       '</form>',
     '</div>'
   ].join('');
@@ -1657,11 +1656,10 @@ def get_upload_page_html():
                 <span style="font-size: 0.65rem; color: var(--amber); font-weight: 700; letter-spacing: 0.5px;">WIRELESS DRIVE</span>
             </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-            <span class="phone-ip-badge" id="phone-ip-badge" style="margin: 0; font-size: 0.62rem; padding: 2px 7px;">IP: ...</span>
-            <button class="sponsor-btn" id="gb-top-sponsor" title="Support the project" style="display:inline-flex;align-items:center;gap:3px;padding:4px 9px;font-size:0.68rem;"><span style="display:inline-block;animation:gbHeartBeat 1.8s ease-in-out infinite;">❤️</span> Support</button>
+        <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; padding-right: 8px;">
+            <button class="sponsor-btn" id="gb-top-sponsor" title="Support the project" style="display:inline-flex;align-items:center;gap:3px;padding:5px 10px;font-size:0.72rem;"><span style="display:inline-block;animation:gbHeartBeat 1.8s ease-in-out infinite;">❤️</span> Support</button>
             <form method="POST" action="/auth/logout" style="margin: 0;">
-                <button type="submit" class="logout-btn" title="Logout session" style="padding:4px 9px;font-size:0.68rem;">&#128275;</button>
+                <button type="submit" class="logout-btn" title="Logout session" style="padding:5px 10px;font-size:0.72rem;">&#128275; Logout</button>
             </form>
         </div>
     </header>
@@ -1841,9 +1839,33 @@ def get_upload_page_html():
                     const selfBadge = s.is_self ? '<span style="background:rgba(16,185,129,0.15);color:#10b981;padding:2px 6px;border-radius:4px;font-size:0.6rem;font-weight:800;border:1px solid rgba(16,185,129,0.25);">CURRENT DEVICE</span>' : '';
                     
                     let deviceIcon = '💻';
+                    let deviceName = 'Desktop Browser';
                     const ua = s.user_agent.toLowerCase();
-                    if (ua.includes('mobi') || ua.includes('android') || ua.includes('iphone')) {
+                    const uaRaw = s.user_agent;
+
+                    // Detect device type + OS
+                    if (ua.includes('android')) {
                         deviceIcon = '📱';
+                        const modelMatch = uaRaw.match(/;[ \t]*([A-Z][^;)]+)[ \t]+Build/i);
+                        deviceName = modelMatch ? modelMatch[1].trim() : 'Android Device';
+                    } else if (ua.includes('iphone')) {
+                        deviceIcon = '📱';
+                        deviceName = 'iPhone';
+                    } else if (ua.includes('ipad')) {
+                        deviceIcon = '📱';
+                        deviceName = 'iPad';
+                    } else if (ua.includes('windows')) {
+                        deviceIcon = '💻';
+                        deviceName = 'Windows PC';
+                    } else if (ua.includes('macintosh') || ua.includes('mac os')) {
+                        deviceIcon = '💻';
+                        deviceName = 'Mac';
+                    } else if (ua.includes('linux')) {
+                        deviceIcon = '💻';
+                        deviceName = 'Linux PC';
+                    } else if (ua.includes('curl') || ua.includes('python') || ua.includes('go-http')) {
+                        deviceIcon = '🧩';
+                        deviceName = 'Script / Bot';
                     }
                     
                     html += `
@@ -1852,10 +1874,11 @@ def get_upload_page_html():
                             <span style="font-size:1.5rem;background:rgba(255,255,255,0.03);padding:6px;border-radius:8px;">${deviceIcon}</span>
                             <div style="display:flex;flex-direction:column;gap:2px;">
                                 <div style="display:flex;align-items:center;gap:8px;">
-                                    <span style="font-weight:700;font-size:0.85rem;color:#fff;">IP: ${s.ip}</span>
+                                    <span style="font-weight:700;font-size:0.85rem;color:#fff;">${deviceName}</span>
                                     ${selfBadge}
                                 </div>
-                                <span style="font-size:0.7rem;color:var(--text-secondary);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${s.user_agent}">${s.user_agent}</span>
+                                <span style="font-size:0.75rem;color:var(--text-secondary);font-family:monospace;">IP: ${s.ip}</span>
+                                <span style="font-size:0.65rem;color:var(--text-muted);" title="${s.user_agent}">${s.user_agent.length > 55 ? s.user_agent.slice(0,55)+'...' : s.user_agent}</span>
                                 <span style="font-size:0.65rem;color:var(--text-muted);">Connected: ${date} | Active: ${lastSeen}</span>
                             </div>
                         </div>
