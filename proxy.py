@@ -427,7 +427,7 @@ def get_floating_button_js():
   link.href = 'data:image/svg+xml;base64,' + ICON_B64;
   document.getElementsByTagName('head')[0].appendChild(link);
 
-  // --- CSS ---
+  //  # --- CSS ---
   var style = document.createElement('style');
   style.id = 'gb-nav-css';
   style.textContent = [
@@ -440,8 +440,10 @@ def get_floating_button_js():
     '.gb-top-logo-sub{font-size:0.6rem;color:#fbbf24;font-weight:700;letter-spacing:0.5px;}',
     '.gb-top-right{display:flex;align-items:center;gap:8px;}',
     '.gb-ip-badge{background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.2);padding:3px 8px;border-radius:12px;font-size:0.68rem;font-weight:600;font-family:inherit;}',
-    '.gb-logout-btn{background:rgba(239,68,68,0.08);color:#ef4444;border:1px solid rgba(239,68,68,0.15);padding:5px 10px;font-size:0.72rem;font-weight:600;border-radius:6px;cursor:pointer;font-family:inherit;}',
+    '.gb-logout-btn{background:rgba(239,68,68,0.08);color:#ef4444;border:1px solid rgba(239,68,68,0.15);padding:5px 10px;font-size:0.72rem;font-weight:600;border-radius:6px;cursor:pointer;font-family:inherit;transition:all 0.2s;}',
     '.gb-logout-btn:hover{background:#ef4444;color:#fff;}',
+    '.gb-sponsor-btn{background:rgba(217,119,6,0.1);color:#fbbf24;border:1px solid rgba(217,119,6,0.25);padding:5px 10px;font-size:0.72rem;font-weight:600;border-radius:6px;cursor:pointer;font-family:inherit;margin-right:4px;transition:all 0.2s;}',
+    '.gb-sponsor-btn:hover{background:#d97706;color:#fff;border-color:#d97706;box-shadow:0 0 8px rgba(217,119,6,0.3);}',
     '#gb-nav{position:fixed!important;bottom:0!important;left:0!important;right:0!important;z-index:2147483647!important;display:flex!important;height:52px!important;background:#0d0e14!important;border-top:1px solid rgba(255,255,255,0.09)!important;animation:gbSlideUp 0.25s ease-out both!important;}',
     '.gb-tab{flex:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;cursor:pointer!important;border:none!important;background:transparent!important;color:rgba(255,255,255,0.35)!important;font-size:0.6rem!important;font-weight:600!important;letter-spacing:0.04em!important;padding:5px 0!important;font-family:Outfit,system-ui,sans-serif!important;}',
     '.gb-tab .icon{font-size:1.1rem!important;line-height:1!important;display:block!important;}',
@@ -466,6 +468,7 @@ def get_floating_button_js():
     '</div>',
     '<div class="gb-top-right">',
       '<span class="gb-ip-badge" id="gb-top-ip">IP: ...</span>',
+      '<button class="gb-sponsor-btn" id="gb-top-sponsor" title="Support Project">❤️ Support</button>',
       '<form method="POST" action="/auth/logout" style="margin:0">',
         '<button type="submit" class="gb-logout-btn">&#128275; Logout</button>',
       '</form>',
@@ -476,6 +479,55 @@ def get_floating_button_js():
   // Set IP badge
   var ipEl = document.getElementById('gb-top-ip');
   if (ipEl) ipEl.textContent = 'IP: ' + window.location.hostname;
+
+  // --- Sponsor Modal ---
+  var sponsorModal = document.createElement('div');
+  sponsorModal.id = 'gb-sponsor-modal';
+  sponsorModal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:2147483647;font-family:Outfit,system-ui,sans-serif;box-sizing:border-box;';
+  sponsorModal.innerHTML = [
+    '<div style="background:#0e1318;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:24px;width:92%;max-width:390px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.85);text-align:center;box-sizing:border-box;animation:gbSlideUp 0.2s ease-out;">',
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">',
+        '<span style="font-weight:800;font-size:1.15rem;color:#fff;letter-spacing:-0.2px;">Support GravityBridge</span>',
+        '<span id="gb-sponsor-close" style="font-size:1.4rem;cursor:pointer;color:rgba(255,255,255,0.4);font-weight:bold;line-height:1;transition:color 0.2s;">&times;</span>',
+      '</div>',
+      '<p style="font-size:0.8rem;color:rgba(255,255,255,0.65);line-height:1.45;margin-bottom:20px;text-align:left;">If GravityBridge helps you wire code or sync assets, support the project! Scan the QR code or copy the UPI IDs to transfer directly.</p>',
+      '<div style="background:#fff;padding:12px;border-radius:16px;display:inline-block;margin-bottom:20px;box-shadow:0 8px 16px rgba(0,0,0,0.25);">',
+        '<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=a.mohit1998@okhdfcbank%26pn=Mohit%20Arora%26cu=INR" style="width:160px;height:160px;display:block;" alt="UPI QR Code" />',
+      '</div>',
+      '<div style="display:flex;flex-direction:column;gap:8px;text-align:left;">',
+        '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">',
+          '<div>',
+            '<span style="font-size:0.58rem;color:rgba(255,255,255,0.4);display:block;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;">UPI ID 1</span>',
+            '<span style="font-size:0.75rem;color:#fbbf24;font-family:monospace;font-weight:600;">a.mohit1998@okhdfcbank</span>',
+          '</div>',
+          '<button id="gb-copy-upi-1" style="background:rgba(251,191,36,0.1);color:#fbbf24;border:none;padding:4px 8px;font-size:0.65rem;border-radius:4px;cursor:pointer;font-weight:600;font-family:inherit;transition:all 0.2s;">Copy</button>',
+        '</div>',
+        '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">',
+          '<div>',
+            '<span style="font-size:0.58rem;color:rgba(255,255,255,0.4);display:block;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;">UPI ID 2</span>',
+            '<span style="font-size:0.75rem;color:#fbbf24;font-family:monospace;font-weight:600;">mohit1998arora@yescred</span>',
+          '</div>',
+          '<button id="gb-copy-upi-2" style="background:rgba(251,191,36,0.1);color:#fbbf24;border:none;padding:4px 8px;font-size:0.65rem;border-radius:4px;cursor:pointer;font-weight:600;font-family:inherit;transition:all 0.2s;">Copy</button>',
+        '</div>',
+      '</div>',
+    '</div>'
+  ].join('');
+  document.body.appendChild(sponsorModal);
+
+  // Copy helper
+  function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(function() {
+      var orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.style.background = 'rgba(16,185,129,0.15)';
+      btn.style.color = '#10b981';
+      setTimeout(function() {
+        btn.textContent = orig;
+        btn.style.background = 'rgba(251,191,36,0.1)';
+        btn.style.color = '#fbbf24';
+      }, 1200);
+    });
+  }
 
   // --- Phone Drive Overlay iframe ---
   var overlay = document.createElement('div');
@@ -514,12 +566,30 @@ def get_floating_button_js():
     }
   }
 
+  // Event Listeners
+  document.getElementById('gb-top-sponsor').addEventListener('click', function() {
+    sponsorModal.style.display = 'flex';
+  });
+  document.getElementById('gb-sponsor-close').addEventListener('click', function() {
+    sponsorModal.style.display = 'none';
+  });
+  sponsorModal.addEventListener('click', function(e) {
+    if (e.target === sponsorModal) sponsorModal.style.display = 'none';
+  });
+  document.getElementById('gb-copy-upi-1').addEventListener('click', function() {
+    copyText('a.mohit1998@okhdfcbank', this);
+  });
+  document.getElementById('gb-copy-upi-2').addEventListener('click', function() {
+    copyText('mohit1998arora@yescred', this);
+  });
+
   tabChat.addEventListener('click', function() { setActive('chat'); });
   tabUpload.addEventListener('click', function() { setActive('upload'); });
   window.addEventListener('message', function(e) {
     if (e.data === 'gb:back-to-chat') { setActive('chat'); }
   });
 })();
+
 '''
 
 def _read_post_body(initial_data, client_socket):
@@ -1027,6 +1097,29 @@ def get_upload_page_html():
             font-weight: 700;
             color: #fff;
             margin-bottom: 4px;
+        }
+
+        .sponsor-btn {
+            background: rgba(217, 119, 6, 0.1);
+            color: #fbbf24;
+            border: 1px solid rgba(217, 119, 6, 0.25);
+            padding: 5px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-family: inherit;
+        }
+
+        .sponsor-btn:hover {
+            background: #d97706;
+            color: #fff;
+            border-color: #d97706;
+            box-shadow: 0 0 8px rgba(217, 119, 6, 0.3);
         }
 
         .logout-btn {
@@ -1591,6 +1684,7 @@ def get_upload_page_html():
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
             <span class="phone-ip-badge" id="phone-ip-badge" style="margin: 0; font-size: 0.7rem; padding: 3px 8px;">IP: Connecting...</span>
+            <button class="sponsor-btn" id="gb-top-sponsor" title="Support Project">❤️ Support</button>
             <form method="POST" action="/auth/logout" style="margin: 0;">
                 <button type="submit" class="logout-btn" title="Logout session">
                     &#128275; Logout
@@ -2449,6 +2543,68 @@ def get_upload_page_html():
 
     <!-- Toast container for new device notifications -->
     <div id="gb-toast-container"></div>
+
+    <!-- Sponsor Modal -->
+    <div id="gb-sponsor-modal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:2147483647;font-family:Outfit,system-ui,sans-serif;box-sizing:border-box;">
+        <div style="background:#0e1318;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:24px;width:92%;max-width:390px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.85);text-align:center;box-sizing:border-box;animation:gbSlideUp 0.2s ease-out;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <span style="font-weight:800;font-size:1.15rem;color:#fff;letter-spacing:-0.2px;">Support GravityBridge</span>
+                <span id="gb-sponsor-close" style="font-size:1.4rem;cursor:pointer;color:rgba(255,255,255,0.4);font-weight:bold;line-height:1;transition:color 0.2s;">&times;</span>
+            </div>
+            <p style="font-size:0.8rem;color:rgba(255,255,255,0.65);line-height:1.45;margin-bottom:20px;text-align:left;">If GravityBridge helps you wire code or sync assets, support the project! Scan the QR code or copy the UPI IDs to transfer directly.</p>
+            <div style="background:#fff;padding:12px;border-radius:16px;display:inline-block;margin-bottom:20px;box-shadow:0 8px 16px rgba(0,0,0,0.25);">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=a.mohit1998@okhdfcbank%26pn=Mohit%20Arora%26cu=INR" style="width:160px;height:160px;display:block;" alt="UPI QR Code" />
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;text-align:left;">
+                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <span style="font-size:0.58rem;color:rgba(255,255,255,0.4);display:block;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;">UPI ID 1</span>
+                        <span style="font-size:0.75rem;color:#fbbf24;font-family:monospace;font-weight:600;">a.mohit1998@okhdfcbank</span>
+                    </div>
+                    <button id="gb-copy-upi-1" style="background:rgba(251,191,36,0.1);color:#fbbf24;border:none;padding:4px 8px;font-size:0.65rem;border-radius:4px;cursor:pointer;font-weight:600;font-family:inherit;transition:all 0.2s;">Copy</button>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <span style="font-size:0.58rem;color:rgba(255,255,255,0.4);display:block;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;">UPI ID 2</span>
+                        <span style="font-size:0.75rem;color:#fbbf24;font-family:monospace;font-weight:600;">mohit1998arora@yescred</span>
+                    </div>
+                    <button id="gb-copy-upi-2" style="background:rgba(251,191,36,0.1);color:#fbbf24;border:none;padding:4px 8px;font-size:0.65rem;border-radius:4px;cursor:pointer;font-weight:600;font-family:inherit;transition:all 0.2s;">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('gb-top-sponsor').addEventListener('click', function() {
+            document.getElementById('gb-sponsor-modal').style.display = 'flex';
+        });
+        document.getElementById('gb-sponsor-close').addEventListener('click', function() {
+            document.getElementById('gb-sponsor-modal').style.display = 'none';
+        });
+        document.getElementById('gb-sponsor-modal').addEventListener('click', function(e) {
+            if (e.target === this) this.style.display = 'none';
+        });
+        
+        function copyText(text, btn) {
+            navigator.clipboard.writeText(text).then(function() {
+                var orig = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.style.background = 'rgba(16,185,129,0.15)';
+                btn.style.color = '#10b981';
+                setTimeout(function() {
+                    btn.textContent = orig;
+                    btn.style.background = 'rgba(251,191,36,0.1)';
+                    btn.style.color = '#fbbf24';
+                }, 1200);
+            });
+        }
+        document.getElementById('gb-copy-upi-1').addEventListener('click', function() {
+            copyText('a.mohit1998@okhdfcbank', this);
+        });
+        document.getElementById('gb-copy-upi-2').addEventListener('click', function() {
+            copyText('mohit1998arora@yescred', this);
+        });
+    </script>
 
     <script>
         (function() {
