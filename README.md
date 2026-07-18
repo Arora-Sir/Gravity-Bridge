@@ -1,6 +1,6 @@
 # GravityBridge: Symmetrical Mobile Portal for Antigravity 2.0
 
-> **Run desktop AI agents directly from your phone while browsing and transferring phone storage — all in a unified mobile interface.**
+> **Run desktop AI agents directly from your phone while browsing and transferring phone storage, all in a unified mobile interface.**
 
 ![GravityBridge Mobile Interface Collage](static/collage.jpg)
 
@@ -8,7 +8,7 @@
 
 ## Why This Project Exists
 
-Standard cloud-based AI chat interfaces (like Gemini Web or ChatGPT) are completely isolated from your local development environment. Antigravity 2.0 runs locally on your laptop, giving the AI agent full host capabilities — direct file read/write, AST-based codebase parsing, terminal command execution, and background task scheduling.
+Standard cloud-based AI chat interfaces (like Gemini Web or ChatGPT) are completely isolated from your local development environment. Antigravity 2.0 runs locally on your laptop, giving the AI agent full host capabilities: direct file read/write, AST-based codebase parsing, terminal command execution, and background task scheduling.
 
 GravityBridge acts as a local reverse proxy that exposes this entire agentic environment securely to your phone's browser. By embedding the desktop Antigravity page inside a responsive overlay on top of an ADB-driven Phone Drive explorer, you gain simultaneous access to both your phone's storage and your laptop's AI workspace.
 
@@ -41,7 +41,7 @@ GravityBridge acts as a local reverse proxy that exposes this entire agentic env
 | Phone Drive Explorer | Browse phone's `/sdcard` in real-time via ADB Wi-Fi |
 | Checkbox Selection | Tap to stage multiple folders/files before transfer |
 | Local Drop Zone | Drag & drop files/folders from laptop browser |
-| ZIP Auto-Extract | Drop a `.zip` — it extracts automatically on laptop |
+| ZIP Auto-Extract | Drop a `.zip` and it extracts automatically on laptop |
 | True Progress Tracking | Server-side byte tracking bypasses VPN buffering |
 | Single-Item Retry | Retry individual failed transfers without re-uploading everything |
 | Instant SPA Switching | Chat <-> Phone Drive toggles via hidden iframe overlay (<300ms) |
@@ -96,7 +96,7 @@ PROXY_PORT=15842
 USER_DISPLAY_NAME=YourName
 ```
 
-All paths and personal identifiers are configured via `.env` — nothing is hardcoded.
+All paths and personal identifiers are configured via `.env` (nothing is hardcoded).
 
 ### Step 3: Run the proxy
 
@@ -110,7 +110,7 @@ You should see:
 [+] AUTH_PIN loaded from .env (20 chars)
 [+] PROXY_PORT set to: 15842
 ====================================================
-     GravityBridge 5.38 — Dynamic HTTP Proxy
+     GravityBridge 5.38: Dynamic HTTP Proxy
 ====================================================
 [*] Searching for active port...
 [+] Found active SSL port (200 OK): 65286
@@ -147,10 +147,10 @@ Both devices must be on the same router. Use your laptop's local IP (`192.168.x.
 
 1. Install Tailscale on both laptop and phone: [tailscale.com/download](https://tailscale.com/download)
 2. Sign in with the **same account** on both devices
-3. On phone, open Tailscale — your laptop will appear with a `100.x.x.x` IP
+3. On phone, open Tailscale. Your laptop will appear with a `100.x.x.x` IP
 4. Open in phone browser: `http://100.x.x.x:15842/upload`
 
-> Tailscale creates a secure WireGuard mesh — works anywhere, even on mobile data.
+> Tailscale creates a secure WireGuard mesh that works anywhere, even on mobile data.
 
 ---
 
@@ -216,7 +216,7 @@ All configuration is handled via the `.env` file (see `.env.example` for the tem
 | `USER_DISPLAY_NAME` | No | Name used in AI system prompts (defaults to Windows username) |
 | `USER_HOME_PATH` | No | Home directory for file operations (defaults to `~`) |
 
-The proxy auto-detects phone IP and conversation paths at runtime — no manual configuration needed.
+The proxy auto-detects phone IP and conversation paths at runtime, so no manual configuration is needed.
 
 ---
 
@@ -252,7 +252,7 @@ When you first open the portal, you are greeted with a lock screen. You must ent
 
 - A secure session token (cookie) is issued, valid until browser close or manual logout
 - All protected routes (`/upload`, `/adb-ls`, `/adb-pull`, `/adb-pull-auto`) require a valid session
-- The PIN is never stored in plaintext — only a SHA-256 hash is kept in memory
+- The PIN is never stored in plaintext; only a SHA-256 hash is kept in memory
 
 ### Brute Force Protection
 
@@ -264,12 +264,12 @@ Failed login attempts are tracked per IP address:
 
 ### Current Mitigations (Built-in)
 
-- **PIN authentication** — all routes require a valid session token
-- **File path sanitization** — upload paths strip `..` sequences to prevent directory traversal
-- **ADB path is configurable** — the ADB binary path is set via `.env`; no user-supplied binary execution
-- **ZIP extraction path validation** — each zip entry's path is validated before extraction
-- **Session management** — tokens invalidate on logout or browser close
-- **Constant-time PIN compare** — prevents timing side-channel attacks
+- **PIN authentication:** all routes require a valid session token
+- **File path sanitization:** upload paths strip `..` sequences to prevent directory traversal
+- **ADB path is configurable:** the ADB binary path is set via `.env`; no user-supplied binary execution
+- **ZIP extraction path validation:** each zip entry's path is validated before extraction
+- **Session management:** tokens invalidate on logout or browser close
+- **Constant-time PIN compare:** prevents timing side-channel attacks
 
 ### Known Risks
 
@@ -277,39 +277,39 @@ Even with authentication, be aware of the following:
 
 | Risk | Severity | Note |
 |---|---|---|
-| HTTP (not HTTPS) | Medium | Data is not encrypted in transit — use Tailscale's WireGuard for encryption |
+| HTTP (not HTTPS) | Medium | Data is not encrypted in transit. Use Tailscale's WireGuard for encryption |
 | Open Wi-Fi sniffing | Medium | Without Tailscale, session cookies could be sniffed on public Wi-Fi |
 | Disk exhaustion | Medium | Consider adding a file size limit in production use |
 | ZIP path traversal | Low | Path sanitization is in place, but always keep GravityBridge updated |
 
 ### Real-World Attack Scenarios
 
-#### Scenario 1 — Someone on your local Wi-Fi without the PIN
+#### Scenario 1: Someone on your local Wi-Fi without the PIN
 They try to open `http://your-ip:15842/upload`. They see the lock screen and cannot proceed without the correct `AUTH_PIN`. **They need the PIN to get past the lock screen.**
 
 **Note:** If you are on a public network, the lock screen page itself is served over HTTP and visible. Use Tailscale to prevent anyone from even reaching the lock screen.
 
-#### Scenario 2 — Brute force attempts
+#### Scenario 2: Brute force attempts
 An attacker repeatedly tries different PINs. After 5 failed attempts, their IP gets blocked and they must solve a captcha. This makes automated brute-forcing impractical.
 
 **Mitigation:** Use a strong, long passphrase for `AUTH_PIN`.
 
-#### Scenario 3 — Tailscale IP shared accidentally
+#### Scenario 3: Tailscale IP shared accidentally
 You screenshot your Tailscale dashboard and your `100.x.x.x` IP is visible. Someone outside your tailnet tries `http://100.x.x.x:15842`. Tailscale won't route it.
 
 **Mitigation:** Never enable Tailscale subnet routing for the device running GravityBridge.
 
-#### Scenario 4 — Session cookie sniffing on open local networks (unencrypted HTTP)
+#### Scenario 4: Session cookie sniffing on open local networks (unencrypted HTTP)
 An attacker on the same local Wi-Fi captures your network packets, extracts the unencrypted `session` cookie, and uses it to clone your authenticated browser session.
 
 **Mitigation:** Only run the proxy on trusted networks, or use Tailscale (which creates an encrypted WireGuard tunnel, making packet sniffing impossible).
 
-#### Scenario 5 — Chrome DevTools Protocol (CDP) execution (Remote Code Execution)
+#### Scenario 5: Chrome DevTools Protocol (CDP) execution (Remote Code Execution)
 An attacker manages to hijack your session (via sniffing or a weak PIN) and targets the `/` route which proxies requests to the Electron debugger port on localhost. They send commands to write local files or run system terminals.
 
 **Mitigation:** Always configure a strong, unique `AUTH_PIN` passphrase (12+ characters) in `.env` to prevent brute force, and turn off the proxy process when not in use.
 
-#### Scenario 6 — ADB Wireless Debugging port scanning
+#### Scenario 6: ADB Wireless Debugging port scanning
 An attacker on your local network runs a port scan, finds the phone's open ADB Wireless Debugging port (`5555`), and attempts to run `adb connect` to bypass the proxy entirely.
 
 **Mitigation:** Android has built-in connection guarding. **Always reject** any unexpected authorization popup prompts on your phone.
@@ -317,17 +317,17 @@ An attacker on your local network runs a port scan, finds the phone's open ADB W
 ### Recommended Security Practices
 
 ```
-Priority 1 — MUST DO
+Priority 1 (MUST DO)
   Use a strong AUTH_PIN (12+ characters recommended)
   Use Tailscale for cross-network access (provides WireGuard encryption)
   Stop the proxy when done: Get-Process python | Stop-Process -Force
 
-Priority 2 — SHOULD DO
+Priority 2 (SHOULD DO)
   Bind only to Tailscale IP instead of 0.0.0.0 (see hardened mode below)
   Add firewall rule blocking port 15842 from non-Tailscale interfaces
   Log out (or close browser) after each session
 
-Priority 3 — NICE TO HAVE
+Priority 3 (NICE TO HAVE)
   Enable Tailscale ACLs to whitelist only specific devices
   Add upload size limit
   Enable connection logging dashboard to monitor who connects
@@ -346,13 +346,13 @@ Then in `proxy.py`:
 LISTEN_HOST = "100.100.100.100"  # Only reachable via Tailscale, not local Wi-Fi
 ```
 
-This means the portal is **only accessible from within your Tailscale network** — zero exposure on local Wi-Fi, public internet, or hotspots.
+This means the portal is **only accessible from within your Tailscale network**, with zero exposure on local Wi-Fi, public internet, or hotspots.
 
 ### What This Tool is NOT
 
-- Not a production-grade server — it is a personal utility tool
+- Not a production-grade server; it is a personal utility tool
 - Not safe to expose on a public IP without HTTPS/Tailscale
-- Not encrypted at the transport layer (HTTP, not HTTPS) — use Tailscale's WireGuard for encryption
+- Not encrypted at the transport layer (HTTP, not HTTPS); use Tailscale's WireGuard for encryption
 - Not designed for multi-user environments
 
 ---
@@ -377,7 +377,7 @@ adb connect YOUR_PHONE_IP:5555
 
 ### Progress bar stuck at 20%
 
-This is normal when uploading over Tailscale/cellular — the proxy is tracking actual bytes written to disk. The progress will update as data arrives.
+This is normal when uploading over Tailscale/cellular. The proxy is tracking actual bytes written to disk, and the progress will update as data arrives.
 
 ### Multiple Python processes running
 
@@ -396,6 +396,6 @@ The `PROXY_PORT` in your `.env` is above `65535` (the maximum valid port). Set a
 
 ## License
 
-MIT License — feel free to fork and adapt.
+MIT License. Feel free to fork and adapt.
 
 ---
