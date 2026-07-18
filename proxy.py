@@ -447,7 +447,7 @@ def get_floating_button_js():
     '.gb-tab .icon{font-size:1.1rem!important;line-height:1!important;display:block!important;}',
     '.gb-tab.active{color:#fff!important;background:rgba(217,119,6,0.2)!important;}',
     '.gb-tab.active .icon{filter:drop-shadow(0 0 5px rgba(217,119,6,0.9))!important;}',
-    '#gb-overlay{position:fixed!important;top:56px!important;left:0!important;width:100%!important;height:calc(100% - 108px)!important;z-index:2147483646!important;display:none!important;background:#0d0e14!important;}',
+    '#gb-overlay{position:fixed!important;top:55px!important;left:0!important;width:100%!important;height:calc(100% - 107px)!important;z-index:2147483646!important;display:none!important;background:#0d0e14!important;}',
     '#root{padding-top:56px!important;padding-bottom:52px!important;box-sizing:border-box!important;}',
     'body{background:#0d0e14!important;}'
   ].join('');
@@ -1579,7 +1579,7 @@ def get_upload_page_html():
 </head>
 <body>
     <!-- Hidden iframe preloads chat in background after auth -->
-    <iframe id="gb-chat-preload" src="/" style="display:none; position:fixed; top:56px; left:0; width:100%; height:calc(100% - 108px); z-index:999998; border:none; background:#0d0e14;"></iframe>
+    <iframe id="gb-chat-preload" src="/" style="display:none; position:fixed; top:55px; left:0; width:100%; height:calc(100% - 107px); z-index:999998; border:none; background:#0d0e14;"></iframe>
     <!-- Top Sticky Header Bar -->
     <header class="gb-top-bar gb-upload-view">
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -2413,8 +2413,8 @@ def get_upload_page_html():
             var uploadTab = document.getElementById('gb-nav-upload');
             if (chatFrame) {
                 chatFrame.style.display = 'block';
-                chatFrame.style.top = '56px';
-                chatFrame.style.height = 'calc(100% - 108px)';
+                chatFrame.style.top = '55px';
+                chatFrame.style.height = 'calc(100% - 107px)';
                 chatTab.classList.add('active');
                 uploadTab.classList.remove('active');
             } else {
