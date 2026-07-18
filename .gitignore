@@ -1,0 +1,53 @@
+# GravityBridge -- .gitignore
+# ===========================
+
+# ── Secrets & Config ──────────────────────────────────────────
+# NEVER commit the .env file -- it contains your AUTH_PIN
+.env
+config.json
+start.bat
+
+# ── Uploaded Files ────────────────────────────────────────────
+# All phone/device transfers land here -- personal data, never commit
+DeviceUploads/
+storage/
+graphify-out/
+
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+env/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ── OS & Editor junk ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# ── Logs ──────────────────────────────────────────────────────
+*.log
+
+# ── SSL Certs (if ever generated locally) ─────────────────────
+*.pem
+*.key
+*.crt
+*.cer
+*.pfx
