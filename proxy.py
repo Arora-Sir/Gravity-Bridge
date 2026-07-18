@@ -38,6 +38,7 @@ import zipfile
 import hmac
 import hashlib
 import base64
+import uuid
 import secrets
 import random
 
@@ -245,9 +246,8 @@ def find_electron_debug_port():
                 req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
                 with urllib.request.urlopen(req, timeout=0.5) as response:
                     data = json.loads(response.read().decode('utf-8', errors='ignore'))
-                    for page in data:
-                        if "Antigravity" in page.get("title", ""):
-                            return port
+                    if isinstance(data, list) and len(data) > 0:
+                        return port
             except:
                 pass
     except Exception as e:
@@ -3127,27 +3127,20 @@ def handle_client(client_socket, target_port):
                 client_socket.close()
                 return
             if request_text.startswith("GET / HTTP/1.1") or request_text.startswith("GET /?"):
-                print("[*] No active conversation, serving placeholder page", flush=True)
-                html = '''<!DOCTYPE html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<style>
-  body { font-family:Outfit,system-ui,sans-serif; background:#0d0e14; color:#e2e8f0; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; text-align:center; }
-  .card { background:rgba(17,19,28,0.8); border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:40px 32px; max-width:400px; }
-  .icon { font-size:3rem; margin-bottom:16px; }
-  h2 { font-weight:700; font-size:1.2rem; color:#fff; margin-bottom:8px; }
-  p { font-size:0.85rem; color:#94a3b8; line-height:1.5; }
-  .hint { margin-top:16px; font-size:0.72rem; color:#64748b; }
-</style>
-<script>setTimeout(function(){location.reload();},5000);</script>
-</head><body>
-<div class="card">
-  <div class="icon">&#128172;</div>
-  <h2>No Active Conversation</h2>
-  <p>Open the Antigravity desktop app and start a new conversation to begin chatting.</p>
-  <p class="hint">This page auto-refreshes every 5 seconds...</p>
-</div>
-</body></html>'''
-                _send_html(client_socket, html)
+                # No active conversation found -- generate a random UUID for instant chat
+                fake_id = str(uuid.uuid4())
+                fake_path = f"/c/{fake_id}"
+                print(f"[*] No active conversation, redirecting to random chat path: {fake_path}", flush=True)
+                redirect_resp = (
+                    "HTTP/1.1 307 Temporary Redirect\r\n"
+                    f"Location: {fake_path}\r\n"
+                    "Content-Length: 0\r\n"
+                    "Connection: close\r\n\r\n"
+                ).encode('utf-8')
+                client_socket.sendall(redirect_resp)
+                try: client_socket.shutdown(socket.SHUT_WR)
+                except: pass
+                client_socket.close()
                 return
 
         # Detect active streaming requests
