@@ -448,7 +448,7 @@ def get_floating_button_js():
     '.gb-tab.active{color:#fff!important;background:rgba(217,119,6,0.2)!important;}',
     '.gb-tab.active .icon{filter:drop-shadow(0 0 5px rgba(217,119,6,0.9))!important;}',
     '#gb-overlay{position:fixed!important;top:55px!important;left:0!important;width:100%!important;height:calc(100% - 107px)!important;z-index:2147483646!important;display:none!important;background:#0d0e14!important;}',
-    '#root{padding-top:56px!important;padding-bottom:52px!important;box-sizing:border-box!important;}',
+    '#root{padding-top:55px!important;padding-bottom:52px!important;box-sizing:border-box!important;}',
     'body{background:#0d0e14!important;}'
   ].join('');
   document.head.appendChild(style);
