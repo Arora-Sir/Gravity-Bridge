@@ -977,7 +977,7 @@ def get_upload_page_html():
             top: 0;
             left: 0;
             right: 0;
-            height: 52px;
+            height: 56px;
             background: rgba(13, 14, 20, 0.82);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
