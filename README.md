@@ -2,6 +2,8 @@
 
 > **Wireless file & folder transfer portal between your Android phone and Windows laptop -- works over local Wi-Fi, Tailscale VPN, or mobile data.**
 
+![GravityBridge Mobile Interface Collage](static/collage.jpg)
+
 GravityBridge is a Python-based HTTP reverse proxy that runs on your laptop and serves a beautiful dark-themed web portal accessible from your phone's browser. It lets you browse your phone's internal storage, select folders/files with checkboxes, and transfer them wirelessly to your laptop -- without USB cables or cloud services.
 
 ---

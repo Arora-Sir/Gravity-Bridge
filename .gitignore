@@ -12,6 +12,7 @@ start.bat
 DeviceUploads/
 storage/
 graphify-out/
+SampleSS/
 
 # ── Python ────────────────────────────────────────────────────
 __pycache__/
