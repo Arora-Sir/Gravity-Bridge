@@ -140,38 +140,74 @@ def cmd_search(query):
         print(json.dumps({"success": False, "error": "No ADB device connected. Please connect your phone."}))
         return
 
-    # Quote query and run search, excluding /sdcard/Android to optimize performance
-    search_cmd = f"find -L /sdcard -path '/sdcard/Android' -prune -o -maxdepth 3 -iname '*{query}*' -exec stat -c '%n|%F|%s' {{}} \\;"
+    cleaned_query = query.strip().strip("/")
+    path_to_check = f"/sdcard/{cleaned_query}"
+    
+    # Check if query points to a directory
+    is_dir = False
     try:
-        res = subprocess.run([
-            ADB_PATH, '-s', device_id, 'shell', search_cmd
-        ], capture_output=True, text=True, errors='ignore', timeout=8.0)
-        
-        if res.returncode != 0:
-            print(json.dumps({"success": False, "error": res.stderr or "ADB find failed"}))
-            return
+        check = subprocess.run([
+            ADB_PATH, '-s', device_id, 'shell', f"[ -d '{path_to_check}' ] && echo 'dir' || echo 'not'"
+        ], capture_output=True, text=True, errors='ignore', timeout=3.0)
+        if "dir" in check.stdout:
+            is_dir = True
+    except Exception:
+        pass
+
+    items = []
+    try:
+        if is_dir:
+            # List files in this directory sorted by time (newest first)
+            cmd = f"ls -lt '{path_to_check}'"
+            res = subprocess.run([
+                ADB_PATH, '-s', device_id, 'shell', cmd
+            ], capture_output=True, text=True, errors='ignore', timeout=8.0)
             
-        items = []
-        for line in res.stdout.splitlines():
-            line = line.strip()
-            if '|' in line:
-                parts = line.split('|', 2)
-                if len(parts) == 3:
-                    path, f_type, size_str = parts
-                    # Skip pruned Android directory match
-                    if '/sdcard/Android' in path:
-                        continue
+            for line in res.stdout.splitlines():
+                line = line.strip()
+                if not line or line.startswith("total"):
+                    continue
+                parts = line.split(None, 7)
+                if len(parts) >= 8:
+                    perms = parts[0]
                     try:
-                        size = int(size_str)
+                        size = int(parts[4])
                     except ValueError:
                         size = 0
-                    
-                    t = 'directory' if 'directory' in f_type.lower() else 'file'
+                    name = parts[7]
+                    t = 'directory' if perms.startswith('d') else 'file'
                     items.append({
-                        "path": path,
+                        "path": f"{path_to_check}/{name}",
                         "type": t,
                         "size_bytes": size
                     })
+        else:
+            # Do a find search on /sdcard
+            search_cmd = f"find -L /sdcard -path '/sdcard/Android' -prune -o -maxdepth 3 -iname '*{cleaned_query}*' -exec stat -c '%n|%F|%s' {{}} \\;"
+            res = subprocess.run([
+                ADB_PATH, '-s', device_id, 'shell', search_cmd
+            ], capture_output=True, text=True, errors='ignore', timeout=8.0)
+            
+            if res.returncode == 0:
+                for line in res.stdout.splitlines():
+                    line = line.strip()
+                    if '|' in line:
+                        parts = line.split('|', 2)
+                        if len(parts) == 3:
+                            path, f_type, size_str = parts
+                            if '/sdcard/Android' in path:
+                                continue
+                            try:
+                                size = int(size_str)
+                            except ValueError:
+                                size = 0
+                            
+                            t = 'directory' if 'directory' in f_type.lower() else 'file'
+                            items.append({
+                                "path": path,
+                                "type": t,
+                                "size_bytes": size
+                            })
         print(json.dumps({"success": True, "items": items}, indent=2))
     except subprocess.TimeoutExpired:
         print(json.dumps({"success": False, "error": "ADB search timed out"}))
