@@ -43,29 +43,14 @@ GravityBridge puts the AI chat and a phone file explorer together in one single 
 
 *Note: All private IP addresses in these screenshots are blurred for safety.*
 
-### 🔐 Lock Screen
-![Lock Screen](static/screenshots/Screenshot_20260720_130633_Brave.jpg)
-*You must enter the `AUTH_PIN` from your `.env` file to log in.*
-
-### 📂 Phone Drive Explorer
-![Phone Drive Explorer](static/screenshots/Screenshot_20260720_120206_Brave.jpg)
-*Browse your Android storage files wirelessly over Wi-Fi or Tailscale.*
-
-### 📥 Drag and Drop Upload Zone
-![Drag and Drop Upload Zone](static/screenshots/Screenshot_20260720_105304_Brave.jpg)
-*Drag files or folders from your laptop browser and drop them to upload directly.*
-
-### 💬 Antigravity Chat
-![Antigravity Chat](static/screenshots/Screenshot_20260720_105331_Brave.jpg)
-*Google's Antigravity 2.0 chat interface running inside your phone browser.*
-
-### 📋 Sidebar and Task Management
-![Sidebar and Task Management](static/screenshots/Screenshot_20260720_105758_Brave.jpg)
-*Open the sidebar menu to manage background tasks, view project folders, or check conversation history.*
-
-### 🔗 Connected Devices Log
-![Connected Devices](static/screenshots/Screenshot_20260720_105308_Brave.jpg)
-*See all phones and PCs currently connected to your server.*
+| Feature & Description | Screenshot Preview |
+|---|---|
+| **🔐 Lock Screen**<br><br>The entry page to the portal. Enter the `AUTH_PIN` configured in your `.env` file to unlock the session.<br><br>Includes brute-force protection (CAPTCHA and temporary IP block after 5 failed attempts). | <img src="static/screenshots/Screenshot_20260720_130633_Brave.jpg" width="280" alt="Lock Screen"> |
+| **📂 Phone Drive Explorer**<br><br>Browse your Android device's `/sdcard` storage in real-time.<br><br>Select folders or files with checkboxes and wirelessly pull them to your PC in one tap. | <img src="static/screenshots/Screenshot_20260720_120206_Brave.jpg" width="280" alt="Phone Drive Explorer"> |
+| **📥 Drag and Drop Upload Zone**<br><br>Upload files or directories directly from your PC browser and save them in the `DeviceUploads/` folder on your laptop.<br><br>Supports automatic extraction of uploaded `.zip` archives. | <img src="static/screenshots/Screenshot_20260720_105304_Brave.jpg" width="280" alt="Upload Zone"> |
+| **💬 Antigravity Chat**<br><br>Control Google's Antigravity 2.0 AI agent on your laptop directly from your phone browser.<br><br>Run shell commands, edit files, and check git status via chat. | <img src="static/screenshots/Screenshot_20260720_105331_Brave.jpg" width="280" alt="Antigravity Chat"> |
+| **📋 Sidebar & Task Management**<br><br>Slide out the sidebar menu to view your active workspace projects, check conversation logs, or manage background agent tasks. | <img src="static/screenshots/Screenshot_20260720_105758_Brave.jpg" width="280" alt="Sidebar and Tasks"> |
+| **🔗 Connected Devices Log**<br><br>Keep track of all active client sessions (both phone and PC) connected to the proxy, including browser details and connection time. | <img src="static/screenshots/Screenshot_20260720_105308_Brave.jpg" width="280" alt="Connected Devices"> |
 
 ## How it works (Architecture)
 
