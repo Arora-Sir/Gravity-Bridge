@@ -44,27 +44,27 @@ GravityBridge puts the AI chat and a phone file explorer together in one single 
 *Note: All private IP addresses in these screenshots are blurred for safety.*
 
 ### 🔐 Lock Screen
-![Lock Screen](SampleSS/New_Mosiac/Screenshot_20260720_130633_Brave.jpg)
+![Lock Screen](static/screenshots/Screenshot_20260720_130633_Brave.jpg)
 *You must enter the `AUTH_PIN` from your `.env` file to log in.*
 
 ### 📂 Phone Drive Explorer
-![Phone Drive Explorer](SampleSS/New_Mosiac/Screenshot_20260720_120206_Brave.jpg)
+![Phone Drive Explorer](static/screenshots/Screenshot_20260720_120206_Brave.jpg)
 *Browse your Android storage files wirelessly over Wi-Fi or Tailscale.*
 
 ### 📥 Drag and Drop Upload Zone
-![Drag and Drop Upload Zone](SampleSS/New_Mosiac/Screenshot_20260720_105304_Brave.jpg)
+![Drag and Drop Upload Zone](static/screenshots/Screenshot_20260720_105304_Brave.jpg)
 *Drag files or folders from your laptop browser and drop them to upload directly.*
 
 ### 💬 Antigravity Chat
-![Antigravity Chat](SampleSS/New_Mosiac/Screenshot_20260720_105331_Brave.jpg)
+![Antigravity Chat](static/screenshots/Screenshot_20260720_105331_Brave.jpg)
 *Google's Antigravity 2.0 chat interface running inside your phone browser.*
 
 ### 📋 Sidebar and Task Management
-![Sidebar and Task Management](SampleSS/New_Mosiac/Screenshot_20260720_105758_Brave.jpg)
+![Sidebar and Task Management](static/screenshots/Screenshot_20260720_105758_Brave.jpg)
 *Open the sidebar menu to manage background tasks, view project folders, or check conversation history.*
 
 ### 🔗 Connected Devices Log
-![Connected Devices](SampleSS/New_Mosiac/Screenshot_20260720_105308_Brave.jpg)
+![Connected Devices](static/screenshots/Screenshot_20260720_105308_Brave.jpg)
 *See all phones and PCs currently connected to your server.*
 
 ## How it works (Architecture)
@@ -74,20 +74,20 @@ GravityBridge runs a Python web server on port `15842`. It connects your phone b
 ```
 ┌─────────────────────┐     HTTP (Wi-Fi / Tailscale)    ┌──────────────────────────────────┐
 │   📱 Phone Browser  │ ──────────────────────────────► │  GravityBridge Proxy  :15842     │
-│  (Chrome / Brave)   │                                  │                                  │
-└─────────────────────┘                                  │  ┌─────────────────────────────┐ │
-                                                         │  │  /upload  → Phone Drive UI  │ │
-                                                         │  │  /adb-ls  → Browse Android  │ │
-                                                         │  │  /adb-pull → Pull files     │ │
-                                                         │  │  /*       → Proxy to AI     │ │
-                                                         │  └──────────┬──────────────────┘ │
-                                                         └─────────────│────────────────────┘
-                                                                       │ HTTPS localhost
-                                                                       ▼
-                                                         ┌─────────────────────────────────┐
-                                                         │  Google Antigravity 2.0 :65286  │
-                                                         │  (Electron app on your laptop)  │
-                                                         └─────────────────────────────────┘
+│  (Chrome / Brave)   │                                 │                                  │
+└─────────────────────┘                                 │  ┌─────────────────────────────┐ │
+                                                        │  │  /upload  → Phone Drive UI  │ │
+                                                        │  │  /adb-ls  → Browse Android  │ │
+                                                        │  │  /adb-pull → Pull files     │ │
+                                                        │  │  /*       → Proxy to AI     │ │
+                                                        │  └──────────┬──────────────────┘ │
+                                                        └─────────────│────────────────────┘
+                                                                      │ HTTPS localhost
+                                                                      ▼
+                                                        ┌─────────────────────────────────┐
+                                                        │  Google Antigravity 2.0 :65286  │
+                                                        │  (Electron app on your laptop)  │
+                                                        └─────────────────────────────────┘
 ```
 
 1. **Proxy Server**: It automatically finds the SSL port of the Antigravity desktop app on your laptop and forwards all chat traffic to it.
