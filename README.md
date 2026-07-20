@@ -1,12 +1,16 @@
-# GravityBridge: Mobile Portal for Google's Antigravity 2.0
+<h1 align="center">GravityBridge: Mobile Portal for Google's Antigravity 2.0</h1>
 
-> **Use your phone browser to control the AI coding agent on your PC, and transfer files between phone and laptop easily.**
+<p align="center">
+  <strong>Use your phone browser to control the AI coding agent on your PC, and transfer files between phone and laptop easily.</strong>
+</p>
 
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Google Antigravity](https://img.shields.io/badge/Google_Antigravity-2.0-orange?style=flat-square&logo=google&logoColor=white)](https://deepmind.google/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-[![Platform: Windows](https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows&logoColor=white)](https://www.microsoft.com/)
-[![Privacy: 100% Local](https://img.shields.io/badge/Privacy-100%25_Local-brightgreen?style=flat-square)](https://github.com/Arora-Sir/Gravity-Bridge)
+<p align="center">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.10+"></a>
+  <a href="https://deepmind.google/"><img src="https://img.shields.io/badge/Google_Antigravity-2.0-orange?style=flat-square&logo=google&logoColor=white" alt="Google Antigravity"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square" alt="License: MIT"></a>
+  <a href="https://www.microsoft.com/"><img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows&logoColor=white" alt="Platform: Windows"></a>
+  <a href="https://github.com/Arora-Sir/Gravity-Bridge"><img src="https://img.shields.io/badge/Privacy-100%25_Local-brightgreen?style=flat-square" alt="Privacy: 100% Local"></a>
+</p>
 
 ---
 
