@@ -18,7 +18,8 @@
 
 | [📖 Overview](#what-is-googles-antigravity-20) | [🖼️ Screenshots](#screenshots) | [🏗️ Architecture](#how-it-works-architecture) | [🛋️ Couch Coding](#real-example-coding-from-your-bed-or-couch) |
 | :---: | :---: | :---: | :---: |
-| [🚀 Quick Start](#quick-start) | [🔌 ADB Pairing](#adb-wireless-debugging-setup) | [🔒 Security](#security) | [🛠️ Troubleshooting](#troubleshooting) |
+| [🚀 Quick Start](#quick-start) | [🔌 ADB Pairing](#adb-wireless-debugging-setup) | [🤖 AI Integration](#🤖-ai-agent-integration-sdcard-global-skill) | [🔒 Security](#security) |
+| [🛠️ Troubleshooting](#troubleshooting) | | | |
 
 ---
 
@@ -260,6 +261,139 @@ List of devices attached
 
 ---
 
+## 🤖 AI-Agent Integration: /sdcard Global Skill
+
+GravityBridge supports a premium global skill for Google Antigravity that allows your AI coding assistant to wirelessly interact with your phone storage directly via chat commands.
+
+Instead of browsing files manually, you can instruct the agent in plain language:
+- *"Pull my tax documents from my phone drive"*
+- *"Search my phone for OpenCV notes and download them"*
+- *"/sdcard status"*
+
+---
+
+### Global Skill Setup Instructions
+
+To register the skill and its rules globally for the Antigravity agent:
+
+1. **Locate the Global Customizations Root**:
+   On Windows, the default path is `C:\Users\<YourUsername>\.gemini\config\`.
+
+2. **Add the Skill**:
+   Create a directory named `skills\sdcard` inside that path, and save the following content as `SKILL.md`:
+
+   ```markdown
+   ---
+   name: sdcard
+   description: Automated wireless phone drive transfers via ADB, checking Tailscale connection status, and listing or pulling directories/files to AutomaticUploads.
+   ---
+
+   # Skill: Phone Drive Puller (`/sdcard` Command)
+
+   This skill enables the AI assistant to interact with the user's Android phone storage (`/sdcard`) wirelessly using ADB over Tailscale or local Wi-Fi.
+
+   ## Dynamic Path & Workspace Resolution
+
+   To ensure compatibility across different directories and clones:
+   1. **Locate the Gravity-Bridge Root**:
+      - Check if `scripts/sdcard_helper.py` exists in the active workspace root. If so, that is the Gravity-Bridge root path.
+      - Otherwise, use the path of the Gravity-Bridge folder on your system (e.g., `C:/path/to/Gravity-Bridge`).
+   2. **Execute Commands**:
+      - Always run the python command `python scripts/sdcard_helper.py <command> <args>` with the working directory (`Cwd`) set to the resolved Gravity-Bridge root path.
+   3. **Build Clickable Links**:
+      - The helper script saves pulled items into the local folder `DeviceUploads/AutomaticUploads/` relative to the script location.
+      - Dynamically construct the absolute clickable link using the format `file:///<resolved_gravity_bridge_root_path>/DeviceUploads/AutomaticUploads/<basename>`.
+
+   ## Instant Connectivity Verification & Auto-Recovery
+
+   Whenever a request is received, the agent must check connectivity status first and auto-recover any down dependencies instantly:
+
+   1. **Run Status Check**:
+      - Execute `python scripts/sdcard_helper.py status`.
+   2. **Auto-Recover Laptop Tailscale**:
+      - If `tailscale.laptop_active` is `false`:
+        - Attempt to start the Tailscale client on the laptop (e.g. running `tailscale up` or booting `tailscale-ipn.exe`).
+        - Notify the user: "Laptop Tailscale was offline; attempting to boot it now."
+        - Re-run the status check. If it still fails, report the error and stop.
+   3. **Auto-Recover Proxy Server**:
+      - If `proxy.running` is `false`:
+        - Automatically start the proxy server in the background by executing `python proxy.py` under the resolved Gravity-Bridge root path.
+        - Notify the user: "Local proxy.py was offline; auto-booting it in the background now."
+   4. **Instant Phone Tailscale Warning**:
+      - If `tailscale.phone_connected` is `false` or `tailscale.phone_active` is `false`:
+        - Instantly reply stating: "Error: Your phone is not connected to Tailscale. Please open Tailscale on your mobile and connect."
+        - Stop execution immediately.
+
+   ## Triggering
+
+   This skill is triggered when:
+   - The user uses the `/sdcard` slash command.
+   - The user says "Pull `<query>` from my phone drive", "Transfer `<query>` from my phone", or similar commands.
+
+   ## Subcommand Workflows
+
+   ### 1. General Request: "Pull `<query>` from my phone drive"
+
+   When a user requests to pull a file or folder:
+   1. Extract the search query from the user's request.
+   2. Run the status check and execute the recovery steps listed under "Instant Connectivity Verification & Auto-Recovery".
+   3. Run `python scripts/sdcard_helper.py search "<query>"` to locate matching paths.
+   4. If matching files are found, present them to the user in a checklist format.
+   5. **Mandatory Confirmation**: Ask the user: "Which of these files would you like me to transfer to your laptop? Please confirm (e.g. 'all', '1 and 2', 'yes')."
+   6. Once approved, run `python scripts/sdcard_helper.py pull "<selected_path>"` for each selected path.
+   7. Display success with a clickable link to each file in `DeviceUploads/AutomaticUploads/` dynamically constructed using the resolved root path.
+   ```
+
+3. **Register the Global Rules**:
+   Open `AGENTS.md` in your global customizations folder (`C:\Users\<YourUsername>\.gemini\config\AGENTS.md`) and append:
+
+   ```markdown
+   ## 📱 Wireless Phone Drive (/sdcard Slash Command)
+
+   Whenever the user references the `/sdcard` command or asks to pull/transfer files from their phone (e.g. "Pull <query> from my phone drive"):
+   1. The agent MUST trigger the `sdcard` skill.
+   2. The agent MUST check connectivity status using `python scripts/sdcard_helper.py status` under the resolved Gravity-Bridge root directory.
+   3. The agent MUST perform instant connectivity validation and auto-recovery:
+      - If laptop Tailscale is inactive, the agent must immediately try to start it.
+      - If the proxy is not running, the agent must automatically boot it in the background (`python proxy.py` under the resolved Gravity-Bridge root folder) without asking the user.
+      - If the phone is not connected to Tailscale, the agent must warn the user instantly and stop the workflow immediately.
+   4. The agent MUST search for candidates using `python scripts/sdcard_helper.py search "<query>"`.
+   5. The agent MUST present the candidate paths, sizes, and types to the user in a clear checklist format (e.g. [ ] 1: path, [ ] 2: path).
+   6. The agent MUST ask the user to choose which items to pull and MUST NOT start the transfer until the user explicitly confirms their selection (e.g., "all", "1 and 3", "yes").
+   7. The agent MUST pull the selected file(s)/folder(s) using `python scripts/sdcard_helper.py pull "<path>"` to save it to the local folder `DeviceUploads/AutomaticUploads/` relative to the helper script.
+   8. The agent MUST display a success message with a clickable file link dynamically built from the resolved Gravity-Bridge root path and the relative path of the file.
+   ```
+
+---
+
+### Interactive Transfer Flow
+
+Once configured, the AI agent coordinates ADB actions dynamically:
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant AI as Antigravity Agent
+    participant PC as Laptop (ADB Host)
+    participant Phone as Android Device
+
+    User->>AI: "Pull my tax report from my phone drive"
+    AI->>PC: Run sdcard_helper.py status
+    PC-->>AI: Connected
+    AI->>PC: Run sdcard_helper.py search "tax"
+    PC->>Phone: adb shell find /sdcard -name "*tax*"
+    Phone-->>PC: Found path: /sdcard/Documents/tax_2026.pdf
+    PC-->>AI: File details (Path, size)
+    AI-->>User: "I found '/sdcard/Documents/tax_2026.pdf' (1.2 MB). Should I transfer it?"
+    User->>AI: "Yes, go ahead"
+    AI->>PC: Run sdcard_helper.py pull "/sdcard/Documents/tax_2026.pdf"
+    PC->>Phone: adb pull
+    Phone-->>PC: File copied successfully
+    AI-->>User: "Transferred successfully! Link: [tax_2026.pdf](file:///...)"
+```
+
+---
+
 ## Directory Structure
 
 ```
@@ -287,6 +421,7 @@ All configuration is handled via the `.env` file:
 | `PROXY_PORT` | No | Port the proxy listens on (default: `15842`) |
 | `USER_DISPLAY_NAME` | No | Name used in AI system prompts (defaults to Windows username) |
 | `USER_HOME_PATH` | No | Home directory for file operations (defaults to `~`) |
+| `TAILSCALE_PHONE_NAME` | No | Device name of phone in Tailscale status (defaults to `android`) |
 
 ---
 
