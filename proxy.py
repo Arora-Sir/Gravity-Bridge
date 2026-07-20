@@ -137,6 +137,81 @@ def _log_event(ip, event, detail=""):
         if len(CONN_LOG) > 200:
             CONN_LOG.pop(0)
 
+def get_target_adb_device():
+    """Locate the target connected ADB device based on LAST_KNOWN_PHONE_IP, with a fallback if multiple are connected."""
+    try:
+        res = subprocess.run([ADB_EXECUTABLE_PATH, "devices"], capture_output=True, text=True, errors='ignore')
+        lines = res.stdout.splitlines()
+    except Exception as e:
+        print(f"[!] Error running adb devices: {e}", flush=True)
+        return None
+
+    devices = []
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("List of devices"):
+            continue
+        parts = line.split()
+        if len(parts) >= 2 and parts[1] == "device":
+            devices.append(parts[0])
+
+    print(f"[DEBUG] get_target_adb_device() -> Active devices: {devices}", flush=True)
+    print(f"[DEBUG] get_target_adb_device() -> LAST_KNOWN_PHONE_IP: {LAST_KNOWN_PHONE_IP}", flush=True)
+
+    # Try to find a device matching LAST_KNOWN_PHONE_IP first
+    if LAST_KNOWN_PHONE_IP:
+        # Check direct match (starts with IP: or is exact IP)
+        for dev in devices:
+            if dev.startswith(f"{LAST_KNOWN_PHONE_IP}:") or dev == LAST_KNOWN_PHONE_IP:
+                print(f"[DEBUG] get_target_adb_device() -> Direct match found: {dev}", flush=True)
+                return dev
+
+        # Check Tailscale direct LAN IP resolution
+        if LAST_KNOWN_PHONE_IP.startswith("100."):
+            try:
+                ts_res = subprocess.run(["tailscale", "status"], capture_output=True, text=True, errors='ignore')
+                for ts_line in ts_res.stdout.splitlines():
+                    if LAST_KNOWN_PHONE_IP in ts_line and "direct" in ts_line:
+                        match = re.search(r"direct\s+([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)", ts_line)
+                        if match:
+                            lan_ip = match.group(1)
+                            print(f"[DEBUG] get_target_adb_device() -> Resolved Tailscale IP {LAST_KNOWN_PHONE_IP} to LAN IP {lan_ip}", flush=True)
+                            for dev in devices:
+                                if dev.startswith(f"{lan_ip}:") or dev == lan_ip:
+                                    print(f"[DEBUG] get_target_adb_device() -> Tailscale LAN match found: {dev}", flush=True)
+                                    return dev
+            except Exception as e:
+                print(f"[!] Error resolving Tailscale LAN IP: {e}", flush=True)
+
+        # Try connecting if the device is not listed
+        try:
+            print(f"[*] Phone IP {LAST_KNOWN_PHONE_IP} not in active devices. Attempting adb connect...", flush=True)
+            subprocess.run([ADB_EXECUTABLE_PATH, "connect", f"{LAST_KNOWN_PHONE_IP}:5555"], capture_output=True, timeout=3.0)
+            
+            res = subprocess.run([ADB_EXECUTABLE_PATH, "devices"], capture_output=True, text=True, errors='ignore')
+            lines = res.stdout.splitlines()
+            devices = []
+            for line in lines:
+                line = line.strip()
+                if not line or line.startswith("List of devices"):
+                    continue
+                parts = line.split()
+                if len(parts) >= 2 and parts[1] == "device":
+                    devices.append(parts[0])
+            
+            for dev in devices:
+                if dev.startswith(f"{LAST_KNOWN_PHONE_IP}:") or dev == LAST_KNOWN_PHONE_IP:
+                    print(f"[DEBUG] get_target_adb_device() -> Matched newly connected device: {dev}", flush=True)
+                    return dev
+        except Exception as e:
+            print(f"[!] Error connecting adb to {LAST_KNOWN_PHONE_IP}: {e}", flush=True)
+
+    if devices:
+        print(f"[DEBUG] get_target_adb_device() -> Falling back to first device in list: {devices[0]}", flush=True)
+        return devices[0]
+    print(f"[DEBUG] get_target_adb_device() -> No devices connected.", flush=True)
+    return None
+
 def _extract_cookie_token(request_text):
     m = re.search(r'Cookie:[^\r\n]*gb_session=([a-f0-9]{64})', request_text, re.IGNORECASE)
     return m.group(1) if m else None
@@ -1684,6 +1759,13 @@ def get_upload_page_html():
                     <div class="breadcrumb" id="breadcrumb" style="margin-bottom: 0;">
                         <span>Storage</span>
                     </div>
+                    <span id="phone-ip-badge" class="phone-ip-badge" style="display: none;"></span>
+                    <select id="sort-select" style="background: rgba(0, 0, 0, 0.2); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; font-size: 0.72rem; cursor: pointer; outline: none; font-weight: 600;">
+                        <option value="name-asc">Name (A-Z)</option>
+                        <option value="name-desc">Name (Z-A)</option>
+                        <option value="date-desc">Newest First</option>
+                        <option value="date-asc">Oldest First</option>
+                    </select>
                 </div>
 
                 <div class="browser-list" id="browser-list">
@@ -1763,6 +1845,7 @@ def get_upload_page_html():
         const breadcrumbContainer = document.getElementById('breadcrumb');
         const browserList = document.getElementById('browser-list');
         const queueTitle = document.getElementById('queue-title');
+        const sortSelect = document.getElementById('sort-select');
 
         let stagedItems = [];
         let activeReads = 0;
@@ -1770,6 +1853,7 @@ def get_upload_page_html():
         let lastDroppedDirectory = null;
 
         let currentBrowserPath = "/sdcard";
+        let currentBrowserItems = [];
 
         function logDebug(msg) {
             const row = document.createElement('div');
@@ -1907,6 +1991,7 @@ def get_upload_page_html():
                 
                 if (result.success) {
                     currentBrowserPath = result.path;
+                    currentBrowserItems = result.items;
                     renderBrowserBreadcrumb(result.path);
                     renderBrowserList(result.items);
                 } else {
@@ -1918,6 +2003,11 @@ def get_upload_page_html():
                 logDebug(`ADB load error: ${err.message}`);
             }
         }
+
+        // Listener for sorting select dropdown
+        sortSelect.addEventListener('change', () => {
+            renderBrowserList(currentBrowserItems);
+        });
 
         // Render Browser Breadcrumbs
         function renderBrowserBreadcrumb(path) {
@@ -1975,8 +2065,22 @@ def get_upload_page_html():
                 return;
             }
 
-            const folders = items.filter(i => i.type === 'd').sort((a, b) => a.name.localeCompare(b.name));
-            const files = items.filter(i => i.type === 'f').sort((a, b) => a.name.localeCompare(b.name));
+            const sortVal = sortSelect.value;
+            const compareItems = (a, b) => {
+                if (sortVal === 'name-asc') {
+                    return a.name.localeCompare(b.name);
+                } else if (sortVal === 'name-desc') {
+                    return b.name.localeCompare(a.name);
+                } else if (sortVal === 'date-desc') {
+                    return (b.mtime || 0) - (a.mtime || 0);
+                } else if (sortVal === 'date-asc') {
+                    return (a.mtime || 0) - (b.mtime || 0);
+                }
+                return 0;
+            };
+
+            const folders = items.filter(i => i.type === 'd').sort(compareItems);
+            const files = items.filter(i => i.type === 'f').sort(compareItems);
 
             // Render Folders
             folders.forEach(item => {
@@ -2946,25 +3050,60 @@ def handle_client(client_socket, target_port):
             if not cleaned_path.startswith('/'):
                 cleaned_path = '/sdcard/' + cleaned_path
             
-            subprocess.run([ADB_EXECUTABLE_PATH, "connect", f"{LAST_KNOWN_PHONE_IP}:5555"], capture_output=True)
+            print(f"[DEBUG] GET /adb-ls -> Path: {cleaned_path}, client IP: {client_ip}", flush=True)
             
-            print(f"[*] Browsing directory {cleaned_path} (IP: {LAST_KNOWN_PHONE_IP})...", flush=True)
-            res = subprocess.run([
-                ADB_EXECUTABLE_PATH,
-                "shell",
-                f"cd '{cleaned_path}' && for f in *; do [ -e \"$f\" ] || continue; [ -d \"$f\" ] && echo \"d|$f\" || echo \"f|$f\"; done"
-            ], capture_output=True, text=True, errors='ignore')
+            device_id = get_target_adb_device()
             
             items = []
-            if res.returncode == 0:
-                for line in res.stdout.splitlines():
-                    line = line.strip()
-                    if '|' in line:
-                        t, name = line.split('|', 1)
-                        items.append({"type": t, "name": name})
-                resp_body = json.dumps({"success": True, "path": cleaned_path, "items": items})
+            if not device_id:
+                print(f"[DEBUG] GET /adb-ls -> No ADB device found.", flush=True)
+                resp_body = json.dumps({"success": False, "error": "No ADB device connected. Please connect your phone."})
             else:
-                resp_body = json.dumps({"success": False, "error": res.stderr or "Could not read directory"})
+                print(f"[*] Browsing directory {cleaned_path} on device {device_id}...", flush=True)
+                
+                # Query type, modification time (seconds since epoch), and name using stat
+                res = subprocess.run([
+                    ADB_EXECUTABLE_PATH,
+                    "-s", device_id,
+                    "shell",
+                    f"cd '{cleaned_path}' && stat -c '%F|%Y|%n' * 2>/dev/null"
+                ], capture_output=True, text=True, errors='ignore')
+                
+                print(f"[DEBUG] GET /adb-ls -> stat returncode: {res.returncode}", flush=True)
+                
+                # If stat succeeded and returned output, parse it
+                if res.returncode == 0 and res.stdout.strip():
+                    for line in res.stdout.splitlines():
+                        line = line.strip()
+                        if '|' in line:
+                            parts = line.split('|', 2)
+                            if len(parts) == 3:
+                                f_type, mtime, name = parts
+                                t = 'd' if 'directory' in f_type else 'f'
+                                try:
+                                    mtime_val = int(mtime)
+                                except:
+                                    mtime_val = 0
+                                items.append({"type": t, "mtime": mtime_val, "name": name})
+                else:
+                    # Fallback if stat is not available or directory is empty / failed
+                    print(f"[DEBUG] GET /adb-ls -> stat command was empty or failed, attempting loop fallback", flush=True)
+                    res = subprocess.run([
+                        ADB_EXECUTABLE_PATH,
+                        "-s", device_id,
+                        "shell",
+                        f"cd '{cleaned_path}' && for f in *; do [ -e \"$f\" ] || continue; [ -d \"$f\" ] && echo \"d|$f\" || echo \"f|$f\"; done"
+                    ], capture_output=True, text=True, errors='ignore')
+                    
+                    if res.returncode == 0:
+                        for line in res.stdout.splitlines():
+                            line = line.strip()
+                            if '|' in line:
+                                t, name = line.split('|', 1)
+                                items.append({"type": t, "mtime": 0, "name": name})
+                
+                print(f"[DEBUG] GET /adb-ls -> Found {len(items)} items", flush=True)
+                resp_body = json.dumps({"success": True, "path": cleaned_path, "items": items})
                 
             resp = (
                 "HTTP/1.1 200 OK\r\n"
@@ -2996,54 +3135,59 @@ def handle_client(client_socket, target_port):
             if not folder_name:
                 resp_body = json.dumps({"success": False, "error": "Empty folder name"})
             else:
-                subprocess.run([ADB_EXECUTABLE_PATH, "connect", f"{LAST_KNOWN_PHONE_IP}:5555"], capture_output=True)
-                
-                print(f"[*] Auto-locating dropped folder '{folder_name}' on phone...", flush=True)
-                
-                typical_paths = [
-                    f"/sdcard/Documents/{folder_name}",
-                    f"/sdcard/Download/{folder_name}",
-                    f"/sdcard/{folder_name}"
-                ]
-                
-                found_path = None
-                for path in typical_paths:
-                    check = subprocess.run([
-                        ADB_EXECUTABLE_PATH,
-                        "shell",
-                        f"[ -d '{path}' ] && echo 'exists'"
-                    ], capture_output=True, text=True, errors='ignore')
-                    if "exists" in check.stdout:
-                        found_path = path
-                        break
-                
-                if not found_path:
-                    find_res = subprocess.run([
-                        ADB_EXECUTABLE_PATH,
-                        "shell",
-                        f"find /sdcard -maxdepth 4 -type d -name '{folder_name}' 2>/dev/null"
-                    ], capture_output=True, text=True, errors='ignore')
-                    
-                    paths = [p.strip() for p in find_res.stdout.splitlines() if p.strip()]
-                    if paths:
-                        found_path = paths[0]
-                
-                if not found_path:
-                    resp_body = json.dumps({"success": False, "error": f"Could not find folder '{folder_name}' on phone."})
+                device_id = get_target_adb_device()
+                if not device_id:
+                    resp_body = json.dumps({"success": False, "error": "No ADB device connected. Please connect your phone."})
                 else:
-                    local_path = os.path.join(os.getcwd(), "DeviceUploads", folder_name)
-                    print(f"[*] Auto-pulling: {found_path} -> {local_path}...", flush=True)
-                    res = subprocess.run([
-                        ADB_EXECUTABLE_PATH,
-                        "pull",
-                        found_path,
-                        local_path
-                    ], capture_output=True, text=True, errors='ignore')
+                    print(f"[*] Auto-locating dropped folder '{folder_name}' on device {device_id}...", flush=True)
                     
-                    if res.returncode == 0:
-                        resp_body = json.dumps({"success": True, "path": f"DeviceUploads/{folder_name}", "resolvedPath": found_path})
+                    typical_paths = [
+                        f"/sdcard/Documents/{folder_name}",
+                        f"/sdcard/Download/{folder_name}",
+                        f"/sdcard/{folder_name}"
+                    ]
+                    
+                    found_path = None
+                    for path in typical_paths:
+                        check = subprocess.run([
+                            ADB_EXECUTABLE_PATH,
+                            "-s", device_id,
+                            "shell",
+                            f"[ -d '{path}' ] && echo 'exists'"
+                        ], capture_output=True, text=True, errors='ignore')
+                        if "exists" in check.stdout:
+                            found_path = path
+                            break
+                    
+                    if not found_path:
+                        find_res = subprocess.run([
+                            ADB_EXECUTABLE_PATH,
+                            "-s", device_id,
+                            "shell",
+                            f"find /sdcard -maxdepth 4 -type d -name '{folder_name}' 2>/dev/null"
+                        ], capture_output=True, text=True, errors='ignore')
+                        
+                        paths = [p.strip() for p in find_res.stdout.splitlines() if p.strip()]
+                        if paths:
+                            found_path = paths[0]
+                    
+                    if not found_path:
+                        resp_body = json.dumps({"success": False, "error": f"Could not find folder '{folder_name}' on phone."})
                     else:
-                        resp_body = json.dumps({"success": False, "error": res.stderr or res.stdout or "ADB Pull Error"})
+                        local_path = os.path.join(os.getcwd(), "DeviceUploads", folder_name)
+                        print(f"[*] Auto-pulling: {found_path} -> {local_path} on device {device_id}...", flush=True)
+                        res = subprocess.run([
+                            ADB_EXECUTABLE_PATH,
+                            "-s", device_id,
+                            "pull",
+                            found_path,
+                            local_path
+                        ], capture_output=True, text=True, errors='ignore')
+                        
+                        if res.returncode == 0:
+                            resp_body = json.dumps({"success": True, "path": f"DeviceUploads/{folder_name}", "resolvedPath": found_path})
+                        else:
+                            resp_body = json.dumps({"success": False, "error": res.stderr or res.stdout or "ADB Pull Error"})
                         
             resp = (
                 "HTTP/1.1 200 OK\r\n"
@@ -3102,21 +3246,24 @@ def handle_client(client_socket, target_port):
                 
                 os.makedirs(os.path.dirname(local_path), exist_ok=True)
                 
-                subprocess.run([ADB_EXECUTABLE_PATH, "connect", f"{LAST_KNOWN_PHONE_IP}:5555"], capture_output=True)
-                
-                print(f"[*] Wirelessly pulling {android_path} -> {local_path}...", flush=True)
-                res = subprocess.run([
-                    ADB_EXECUTABLE_PATH,
-                    "pull",
-                    android_path,
-                    local_path
-                ], capture_output=True, text=True, errors='ignore')
-                
-                if res.returncode == 0:
-                    rel_local_path = os.path.relpath(local_path, os.path.join(os.getcwd(), "DeviceUploads")).replace('\\', '/')
-                    resp_body = json.dumps({"success": True, "path": f"DeviceUploads/{rel_local_path}"})
+                device_id = get_target_adb_device()
+                if not device_id:
+                    resp_body = json.dumps({"success": False, "error": "No ADB device connected. Please connect your phone."})
                 else:
-                    resp_body = json.dumps({"success": False, "error": res.stderr or res.stdout or "ADB Pull Error"})
+                    print(f"[*] Wirelessly pulling {android_path} -> {local_path} on device {device_id}...", flush=True)
+                    res = subprocess.run([
+                        ADB_EXECUTABLE_PATH,
+                        "-s", device_id,
+                        "pull",
+                        android_path,
+                        local_path
+                    ], capture_output=True, text=True, errors='ignore')
+                    
+                    if res.returncode == 0:
+                        rel_local_path = os.path.relpath(local_path, os.path.join(os.getcwd(), "DeviceUploads")).replace('\\', '/')
+                        resp_body = json.dumps({"success": True, "path": f"DeviceUploads/{rel_local_path}"})
+                    else:
+                        resp_body = json.dumps({"success": False, "error": res.stderr or res.stdout or "ADB Pull Error"})
                     
             resp = (
                 "HTTP/1.1 200 OK\r\n"

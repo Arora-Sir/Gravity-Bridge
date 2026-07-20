@@ -1,55 +1,151 @@
-# GravityBridge: Symmetrical Mobile Portal for Antigravity 2.0
+# GravityBridge: Mobile Portal for Google's Antigravity 2.0
 
-> **Run desktop AI agents directly from your phone while browsing and transferring phone storage, all in a unified mobile interface.**
+> **Use your phone browser to control the AI coding agent on your PC, and transfer files between phone and laptop easily.**
 
-![GravityBridge Mobile Interface Collage](static/collage.jpg)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![Google Antigravity](https://img.shields.io/badge/Google_Antigravity-2.0-orange?style=flat-square&logo=google&logoColor=white)](https://deepmind.google/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![Platform: Windows](https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows&logoColor=white)](https://www.microsoft.com/)
+[![Privacy: 100% Local](https://img.shields.io/badge/Privacy-100%25_Local-brightgreen?style=flat-square)](https://github.com/Arora-Sir/Gravity-Bridge)
 
 ---
 
-## Why This Project Exists
+## 🗺️ Quick Navigation
 
-Standard cloud-based AI chat interfaces (like Gemini Web or ChatGPT) are completely isolated from your local development environment. Antigravity 2.0 runs locally on your laptop, giving the AI agent full host capabilities: direct file read/write, AST-based codebase parsing, terminal command execution, and background task scheduling.
+| [📖 Overview](#what-is-googles-antigravity-20) | [🖼️ Screenshots](#screenshots) | [🏗️ Architecture](#how-it-works-architecture) | [🛋️ Couch Coding](#real-example-coding-from-your-bed-or-couch) |
+| :---: | :---: | :---: | :---: |
+| [🚀 Quick Start](#quick-start) | [🔌 ADB Pairing](#adb-wireless-debugging-setup) | [🔒 Security](#security) | [🛠️ Troubleshooting](#troubleshooting) |
 
-GravityBridge acts as a local reverse proxy that exposes this entire agentic environment securely to your phone's browser. By embedding the desktop Antigravity page inside a responsive overlay on top of an ADB-driven Phone Drive explorer, you gain simultaneous access to both your phone's storage and your laptop's AI workspace.
+---
 
-### Gemini Web vs. Antigravity 2.0 (via GravityBridge)
+## What is Google's Antigravity 2.0?
 
-| Feature | Standard Gemini Web/App | Antigravity 2.0 + GravityBridge |
+**Antigravity 2.0** is a local AI coding assistant made by Google DeepMind. It runs directly on your computer (not in the cloud). It has full access to your laptop, so it can read and write files, scan your code structure, run terminal commands, and schedule background tasks.
+
+But because it runs locally, you can only open it on your laptop (at `localhost`). Your phone browser cannot reach it by default.
+
+**GravityBridge is a secure local proxy tool. It lets you open a web page on your phone browser to connect to the AI agent on your laptop. Now you can write code and control your workspace from your phone.**
+
+---
+
+## Symmetrical Features (PC and Phone)
+
+GravityBridge puts the AI chat and a phone file explorer together in one single page on your mobile browser:
+
+* 🛋️ **Couch Coding**: Write code, run tests, and check git commits from your phone while sitting on the couch.
+* 📸 **Quick Mobile UI Debugging**: Take a screenshot of a bug on your phone, pull it to your laptop via ADB in one tap, and ask the AI agent to fix the stylesheet immediately.
+* 📂 **Wireless Phone Drive**: Browse your phone `/sdcard` folders, select files with checkboxes, and copy them directly to your PC.
+* 🔄 **Easy Multi-Tasking**: Watch the AI agent running tasks in the chat window, and browse your phone storage files at the same time.
+
+---
+
+## Screenshots
+
+*Note: All private IP addresses in these screenshots are blurred for safety.*
+
+### 🔐 Lock Screen
+![Lock Screen](SampleSS/New_Mosiac/Screenshot_20260720_130633_Brave.jpg)
+*You must enter the `AUTH_PIN` from your `.env` file to log in.*
+
+### 📂 Phone Drive Explorer
+![Phone Drive Explorer](SampleSS/New_Mosiac/Screenshot_20260720_120206_Brave.jpg)
+*Browse your Android storage files wirelessly over Wi-Fi or Tailscale.*
+
+### 📥 Drag and Drop Upload Zone
+![Drag and Drop Upload Zone](SampleSS/New_Mosiac/Screenshot_20260720_105304_Brave.jpg)
+*Drag files or folders from your laptop browser and drop them to upload directly.*
+
+### 💬 Antigravity Chat
+![Antigravity Chat](SampleSS/New_Mosiac/Screenshot_20260720_105331_Brave.jpg)
+*Google's Antigravity 2.0 chat interface running inside your phone browser.*
+
+### 📋 Sidebar and Task Management
+![Sidebar and Task Management](SampleSS/New_Mosiac/Screenshot_20260720_105758_Brave.jpg)
+*Open the sidebar menu to manage background tasks, view project folders, or check conversation history.*
+
+### 🔗 Connected Devices Log
+![Connected Devices](SampleSS/New_Mosiac/Screenshot_20260720_105308_Brave.jpg)
+*See all phones and PCs currently connected to your server.*
+
+## How it works (Architecture)
+
+GravityBridge runs a Python web server on port `15842`. It connects your phone browser to the ADB tool and the Antigravity local server:
+
+```
+┌─────────────────────┐     HTTP (Wi-Fi / Tailscale)    ┌──────────────────────────────────┐
+│   📱 Phone Browser  │ ──────────────────────────────► │  GravityBridge Proxy  :15842     │
+│  (Chrome / Brave)   │                                  │                                  │
+└─────────────────────┘                                  │  ┌─────────────────────────────┐ │
+                                                         │  │  /upload  → Phone Drive UI  │ │
+                                                         │  │  /adb-ls  → Browse Android  │ │
+                                                         │  │  /adb-pull → Pull files     │ │
+                                                         │  │  /*       → Proxy to AI     │ │
+                                                         │  └──────────┬──────────────────┘ │
+                                                         └─────────────│────────────────────┘
+                                                                       │ HTTPS localhost
+                                                                       ▼
+                                                         ┌─────────────────────────────────┐
+                                                         │  Google Antigravity 2.0 :65286  │
+                                                         │  (Electron app on your laptop)  │
+                                                         └─────────────────────────────────┘
+```
+
+1. **Proxy Server**: It automatically finds the SSL port of the Antigravity desktop app on your laptop and forwards all chat traffic to it.
+2. **Phone Drive API**: It uses standard Android Debug Bridge (ADB) commands to communicate with your phone storage.
+3. **Single Page Web App**: Serves a fast dashboard page to switch between Chat and Phone Drive tabs quickly (less than 300ms).
+
+---
+
+## Real Example: Coding from your Bed or Couch
+
+**Before this tool:**
+You are relaxing on the couch. You think of a bug fix or want to see if your tests finished running. You have to get up, go to your desk, open your laptop, and type.
+
+**With this tool:**
+1. Open Brave or Chrome on your phone and go to your laptop IP (`http://192.168.1.100:15842`).
+2. Log in with your PIN.
+3. Tap **Chat** to load your Antigravity 2.0 workspace.
+4. Type: *"Run git status and tell me if the tests passed."* The agent runs the shell commands and replies in real-time.
+5. If you need to upload a screenshot of a bug, tap **Phone Drive**, select the photo, and tap **Pull to PC**. Done.
+
+---
+
+## Comparison Tables
+
+### 1. Antigravity 2.0 vs. Cloud AI (Gemini Web or ChatGPT)
+
+| Feature | Standard Gemini Web/App | Antigravity 2.0 |
 |---|---|---|
-| **Local File Operations** | ❌ None (sandboxed file uploads only) |  Direct laptop workspace read/write & edits |
-| **AST Codebase Analysis** | ❌ Limited context / single-file |  Deep repository analysis & Graphify AST parsing |
-| **Command Line Execution** | ❌ No host terminal access |  Real-time shell command execution (git, tests, builds) |
-| **Symmetrical Mobile Access** | ❌ Single isolated chat window |  Simultaneous phone storage & local PC agent access |
-| **Agentic Automation** | ❌ One-off prompt responses |  Background task runner, timer & cron scheduling |
-| **Data Privacy & Hosting** | ❌ Sent to cloud servers |  100% locally hosted (via Tailscale or Wi-Fi) |
+| **System Control** | ❌ None (only sandboxed chat) | Direct file system access, run local terminal commands |
+| **Codebase Parsing** | ❌ Manual file uploads | Auto AST-based analysis of the whole folder |
+| **Automation** | ❌ Prompt and reply only | Run background tasks, timers, and cron schedules |
+| **Privacy & Hosting** | ❌ Sent to cloud servers | Runs 100% locally on your laptop |
+
+### 2. GravityBridge vs. Vanilla Antigravity
+
+| Feature | Antigravity 2.0 alone | Antigravity 2.0 + GravityBridge |
+|---|---|---|
+| **Mobile Access** | ❌ Only works on your laptop screen | Accessible from any phone browser |
+| **Wireless Transfers** | ❌ Needs USB cable or cloud drives | Built-in ADB-over-Wi-Fi Phone Drive explorer |
+| **Lock Screen Auth** | ❌ None | Secure PIN login with rate-limiting protection |
 
 ---
 
-## Core Motivational Workflows
-
-* 🛋️ **Couch Coding**: Control code generation, verify git status, and run terminal tests directly from your phone browser on your couch.
-* 📸 **Instant UI Debugging**: Snap a screenshot of a mobile layout bug, pull it to your laptop via ADB in one click, and let the agent fix styling bugs instantly.
-* 📂 **Wireless File Hub**: Browse your phone's `/sdcard` in real-time, select files/directories with checkboxes, and pull them directly into local laptop drives.
-* 🔄 **Symmetrical Multi-Tasking**: Monitor long-running agent tasks or shell logs in the chat panel while keeping your phone directory explorer fully active.
-
----
-
-## Features at a Glance
+## Features list
 
 | Feature | Description |
 |---|---|
-| Phone Drive Explorer | Browse phone's `/sdcard` in real-time via ADB Wi-Fi |
-| Checkbox Selection | Tap to stage multiple folders/files before transfer |
-| Local Drop Zone | Drag & drop files/folders from laptop browser |
-| ZIP Auto-Extract | Drop a `.zip` and it extracts automatically on laptop |
-| True Progress Tracking | Server-side byte tracking bypasses VPN buffering |
-| Single-Item Retry | Retry individual failed transfers without re-uploading everything |
-| Instant SPA Switching | Chat <-> Phone Drive toggles via hidden iframe overlay (<300ms) |
-| Background Chat Preload | Chat loads silently after auth, instant when clicking Chat tab |
-| Device Notifications | Toast alerts when a new device connects to the portal |
-| Network Agnostic | Works on local Wi-Fi, Tailscale VPN, or cellular data |
-| Chat Integration | Orange side-tab on Antigravity chat page for one-tap access |
-| PIN Authentication | Lock screen protects all routes from unauthorized access |
+| **Phone Drive Explorer** | Browse phone `/sdcard` in real-time via ADB Wi-Fi |
+| **Checkbox Selection** | Choose multiple files or folders before copying |
+| **Local Drop Zone** | Drag and drop files or folders from laptop browser |
+| **ZIP Auto-Extract** | Drop a `.zip` file on your laptop, and it extracts automatically |
+| **True Progress Tracking** | Server-side progress bar reporting (bypasses VPN buffering) |
+| **Single-Item Retry** | Retry individual failed transfers without re-uploading everything |
+| **Instant SPA Switching** | Switch between Chat and Phone Drive tabs quickly (under 300ms) |
+| **Background Preload** | Chat tab loads in background after login, so it opens instantly |
+| **Toast Alerts** | Popups on phone screen when a new device connects to the server |
+| **PIN Security** | Lock screen protects all pages and API routes |
+| **Brute Force CAPTCHA** | Blocks an IP after 5 failed PIN attempts, captcha required to unlock |
 
 ---
 
@@ -57,24 +153,24 @@ GravityBridge acts as a local reverse proxy that exposes this entire agentic env
 
 | Requirement | Details |
 |---|---|
-| Python 3.10+ | `python --version` |
+| Python 3.10+ | Check version: `python --version` |
 | Android Debug Bridge (ADB) | Download [Platform Tools](https://developer.android.com/tools/releases/platform-tools) |
-| Tailscale (optional, for cross-network) | [tailscale.com](https://tailscale.com) |
-| Android phone with Developer Options | ADB Wireless Debugging enabled |
-| Antigravity desktop app | Running on the same laptop |
+| Tailscale (optional) | Recommended for secure cross-network access: [tailscale.com](https://tailscale.com) |
+| Android Phone | Wireless Debugging enabled in Developer Options |
+| Antigravity Desktop App | Running on the same laptop |
 
 ---
 
 ## Quick Start
 
-### Step 1: Clone the repo
+### Step 1: Clone the Repository
 
 ```powershell
 git clone https://github.com/Arora-Sir/Gravity-Bridge.git
 cd Gravity-Bridge
 ```
 
-### Step 2: Environment Configuration
+### Step 2: Environment Setup
 
 ```powershell
 cp .env.example .env
@@ -96,19 +192,16 @@ PROXY_PORT=15842
 USER_DISPLAY_NAME=YourName
 ```
 
-All paths and personal identifiers are configured via `.env` (nothing is hardcoded).
-
-### Step 3: Run the proxy
+### Step 3: Run the Proxy Server
 
 > [!IMPORTANT]
-> **Antigravity 2.0 must already be running on your Windows machine before this step.** GravityBridge works by dynamically detecting the Antigravity local server port and forwarding all chat traffic through it. Without Antigravity running, the proxy will start but the Chat tab will not function. Keep Antigravity running at all times while using GravityBridge from your phone.
+> **Antigravity 2.0 must already be running on your Windows laptop before this step.** GravityBridge works by finding the Antigravity local server port and forwarding all chat traffic to it. Without Antigravity running, the Chat tab will not work.
 
 ```powershell
 python -u proxy.py
 ```
 
-You should see:
-
+You should see output similar to:
 ```
 [+] AUTH_PIN loaded from .env (20 chars)
 [+] PROXY_PORT set to: 15842
@@ -122,58 +215,48 @@ You should see:
 ====================================================
 ```
 
-### Step 4: Open from your phone
+### Step 4: Open on Your Phone
 
-On the **same Wi-Fi**, find your laptop's local IP:
+Make sure your phone is on the **same Wi-Fi** network, and find your laptop IP:
 
 ```powershell
 ipconfig | Select-String "IPv4"
 ```
 
-Then open in your phone browser:
-
+Then open this URL in your phone browser:
 ```
 http://YOUR_LAPTOP_IP:15842/upload
 ```
-
-Example: `http://192.168.1.100:15842/upload`
+*(Example: `http://192.168.1.100:15842/upload`)*
 
 ---
 
 ## Network Setup Options
 
 ### Option A: Same Wi-Fi (Simplest)
+Both devices must be connected to the same local router. Open the site using your laptop local IP (`192.168.x.x`).
 
-Both devices must be on the same router. Use your laptop's local IP (`192.168.x.x`).
-
-### Option B: Tailscale (Recommended for cross-network)
-
+### Option B: Tailscale (Recommended for Secure Cross-Network Access)
 1. Install Tailscale on both laptop and phone: [tailscale.com/download](https://tailscale.com/download)
-2. Sign in with the **same account** on both devices
-3. On phone, open Tailscale. Your laptop will appear with a `100.x.x.x` IP
-4. Open in phone browser: `http://100.x.x.x:15842/upload`
-
-> Tailscale creates a secure WireGuard mesh that works anywhere, even on mobile data.
+2. Sign in with the **same account** on both devices.
+3. Turn on Tailscale on your phone. Your laptop will appear with a private `100.x.x.x` IP.
+4. Open on your phone browser: `http://100.x.x.x:15842/upload` (works over mobile data too).
 
 ---
 
 ## ADB Wireless Debugging Setup
 
-> Required for the **Phone Drive Explorer** (browsing phone storage and checkbox pulls).
+> Required for the **Phone Drive Explorer** to list files and pull storage.
 
-### Samsung / Stock Android
-
-1. Go to **Settings -> About Phone -> Software Info**
-2. Tap **Build Number** 7 times to unlock Developer Options
-3. Go to **Settings -> Developer Options -> Wireless Debugging**
-4. Enable it and note the device IP (same as your phone's Wi-Fi IP)
-5. Run on laptop:
-
+### Standard Android and Samsung Setup
+1. Go to **Settings -> About Phone -> Software Info**.
+2. Tap **Build Number** 7 times to unlock Developer Options.
+3. Go to **Settings -> Developer Options -> Wireless Debugging** and turn it on.
+4. Note your phone IP and port, and run on your laptop:
 ```powershell
 adb connect YOUR_PHONE_IP:5555
 adb devices
 ```
-
 Expected output:
 ```
 connected to 192.168.1.200:5555
@@ -181,11 +264,10 @@ List of devices attached
 192.168.1.200:5555    device
 ```
 
-### Using Shizuku (if Wireless Debugging is unavailable)
-
-1. Install [Shizuku](https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api) from Play Store
-2. Enable ADB via Shizuku (requires one-time USB setup)
-3. ADB stays authorized persistently without re-approving on reboot
+### Using Shizuku (Persistent ADB authorization)
+1. Install [Shizuku](https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api) from the Play Store.
+2. Enable ADB via Shizuku (requires one-time USB setup).
+3. ADB will stay persistently authorized without requiring re-approval prompts on phone reboots.
 
 ---
 
@@ -199,17 +281,15 @@ Gravity-Bridge/
 ├── .env.example          # Environment template (copy to .env)
 ├── DeviceUploads/        # All transferred files land here (auto-created)
 │   └── PhoneUploads/     # Default subfolder for phone transfers
-├── static/               # Frontend assets (served by server.py)
+├── static/               # HTML and CSS assets (served by server.py)
 └── README.md
 ```
-
-> **Note:** `DeviceUploads/` is auto-created on first upload. It is `.gitignore`-d by default.
 
 ---
 
 ## Configuration Reference
 
-All configuration is handled via the `.env` file (see `.env.example` for the template):
+All configuration is handled via the `.env` file:
 
 | Variable | Required | Description |
 |---|---|---|
@@ -219,8 +299,6 @@ All configuration is handled via the `.env` file (see `.env.example` for the tem
 | `USER_DISPLAY_NAME` | No | Name used in AI system prompts (defaults to Windows username) |
 | `USER_HOME_PATH` | No | Home directory for file operations (defaults to `~`) |
 
-The proxy auto-detects phone IP and conversation paths at runtime, so no manual configuration is needed.
-
 ---
 
 ## Available Routes
@@ -229,8 +307,8 @@ The proxy auto-detects phone IP and conversation paths at runtime, so no manual 
 |---|---|---|
 | `/auth` | GET | Lock screen (PIN entry page) |
 | `/auth` | POST | Validates PIN, issues session cookie, redirects to `/upload` |
-| `/auth/sessions` | GET | Returns JSON list of active sessions (used for device monitoring) |
-| `/auth/logout` | POST | Invalidates current session |
+| `/auth/sessions` | GET | Returns JSON list of active sessions |
+| `/auth/logout` | POST | Log out of current session |
 | `/auth/dashboard` | GET | Security dashboard showing sessions, blocked IPs, event log |
 | `/upload` | GET | Serves the full Phone Drive portal HTML |
 | `/upload` | POST | Receives file bytes, writes to `DeviceUploads/` |
@@ -245,155 +323,50 @@ The proxy auto-detects phone IP and conversation paths at runtime, so no manual 
 ## Security
 
 > [!WARNING]
-> GravityBridge exposes powerful local capabilities (local read/write file access, shell command execution, and Electron debugger control). It is strictly designed for **private, local development**. Never expose this port to the public internet, use a weak lock-screen PIN, or run the server on untrusted public Wi-Fi networks without active Tailscale WireGuard encryption.
+> GravityBridge exposes powerful local laptop capabilities (file writes, shell command execution, and debugger access). It is designed for **private, local development**. Never expose this port to the public internet, use a weak lock-screen PIN, or run the server on untrusted public Wi-Fi networks without active Tailscale WireGuard encryption.
 
-GravityBridge uses a **PIN-based lock screen** to protect all routes from unauthorized access.
+### Security Mitigations
+* **PIN Authentication**: Lock screen protecting all critical pages and APIs.
+* **File Path Sanitization**: Path inputs strip `..` sequences to prevent directory traversal.
+* **Brute Force Defense**: Rate-limiting blocks an IP for 10 minutes after 5 failed PIN attempts, CAPTCHA required to unlock.
+* **Constant-Time Verification**: Prevents timing side-channel attacks during PIN validation.
+* **Safe ZIP Extraction**: Validates path bounds before extracting any ZIP entries.
 
-### What is Protected
-
-When you first open the portal, you are greeted with a lock screen. You must enter the correct `AUTH_PIN` (configured in `.env`) to gain access. Once authenticated:
-
-- A secure session token (cookie) is issued, valid until browser close or manual logout
-- All protected routes (`/upload`, `/adb-ls`, `/adb-pull`, `/adb-pull-auto`) require a valid session
-- The PIN is never stored in plaintext; only a SHA-256 hash is kept in memory
-
-### Brute Force Protection
-
-Failed login attempts are tracked per IP address:
-
-- After 5 failed attempts within 10 minutes, the IP is temporarily blocked
-- A simple math captcha is required to unblock (prevents automated attacks)
-- PIN comparison uses constant-time comparison to prevent timing attacks
-
-### Current Mitigations (Built-in)
-
-- **PIN authentication:** all routes require a valid session token
-- **File path sanitization:** upload paths strip `..` sequences to prevent directory traversal
-- **ADB path is configurable:** the ADB binary path is set via `.env`; no user-supplied binary execution
-- **ZIP extraction path validation:** each zip entry's path is validated before extraction
-- **Session management:** tokens invalidate on logout or browser close
-- **Constant-time PIN compare:** prevents timing side-channel attacks
-
-### Known Risks
-
-Even with authentication, be aware of the following:
-
-| Risk | Severity | Note |
-|---|---|---|
-| HTTP (not HTTPS) | Medium | Data is not encrypted in transit. Use Tailscale's WireGuard for encryption |
-| Open Wi-Fi sniffing | Medium | Without Tailscale, session cookies could be sniffed on public Wi-Fi |
-| Disk exhaustion | Medium | Consider adding a file size limit in production use |
-| ZIP path traversal | Low | Path sanitization is in place, but always keep GravityBridge updated |
-
-### Real-World Attack Scenarios
-
-#### Scenario 1: Someone on your local Wi-Fi without the PIN
-They try to open `http://your-ip:15842/upload`. They see the lock screen and cannot proceed without the correct `AUTH_PIN`. **They need the PIN to get past the lock screen.**
-
-**Note:** If you are on a public network, the lock screen page itself is served over HTTP and visible. Use Tailscale to prevent anyone from even reaching the lock screen.
-
-#### Scenario 2: Brute force attempts
-An attacker repeatedly tries different PINs. After 5 failed attempts, their IP gets blocked and they must solve a captcha. This makes automated brute-forcing impractical.
-
-**Mitigation:** Use a strong, long passphrase for `AUTH_PIN`.
-
-#### Scenario 3: Tailscale IP shared accidentally
-You screenshot your Tailscale dashboard and your `100.x.x.x` IP is visible. Someone outside your tailnet tries `http://100.x.x.x:15842`. Tailscale won't route it.
-
-**Mitigation:** Never enable Tailscale subnet routing for the device running GravityBridge.
-
-#### Scenario 4: Session cookie sniffing on open local networks (unencrypted HTTP)
-An attacker on the same local Wi-Fi captures your network packets, extracts the unencrypted `session` cookie, and uses it to clone your authenticated browser session.
-
-**Mitigation:** Only run the proxy on trusted networks, or use Tailscale (which creates an encrypted WireGuard tunnel, making packet sniffing impossible).
-
-#### Scenario 5: Chrome DevTools Protocol (CDP) execution (Remote Code Execution)
-An attacker manages to hijack your session (via sniffing or a weak PIN) and targets the `/` route which proxies requests to the Electron debugger port on localhost. They send commands to write local files or run system terminals.
-
-**Mitigation:** Always configure a strong, unique `AUTH_PIN` passphrase (12+ characters) in `.env` to prevent brute force, and turn off the proxy process when not in use.
-
-#### Scenario 6: ADB Wireless Debugging port scanning
-An attacker on your local network runs a port scan, finds the phone's open ADB Wireless Debugging port (`5555`), and attempts to run `adb connect` to bypass the proxy entirely.
-
-**Mitigation:** Android has built-in connection guarding. **Always reject** any unexpected authorization popup prompts on your phone.
-
-### Recommended Security Practices
-
-```
-Priority 1 (MUST DO)
-  Use a strong AUTH_PIN (12+ characters recommended)
-  Use Tailscale for cross-network access (provides WireGuard encryption)
-  Stop the proxy when done: Get-Process python | Stop-Process -Force
-
-Priority 2 (SHOULD DO)
-  Bind only to Tailscale IP instead of 0.0.0.0 (see hardened mode below)
-  Add firewall rule blocking port 15842 from non-Tailscale interfaces
-  Log out (or close browser) after each session
-
-Priority 3 (NICE TO HAVE)
-  Enable Tailscale ACLs to whitelist only specific devices
-  Add upload size limit
-  Enable connection logging dashboard to monitor who connects
-```
-
-### Binding only to Tailscale IP (hardened mode)
-
-Find your Tailscale IP:
+### Hardened Mode: Bind to Tailscale Only
+To prevent anyone on your local physical Wi-Fi network from reaching the lock screen, query your Tailscale IP:
 ```powershell
 tailscale ip -4
-# Output: 100.100.100.100 (example)
+# Example Output: 100.100.100.100
 ```
-
-Then in `proxy.py`:
+Then, update `LISTEN_HOST` in `proxy.py`:
 ```python
-LISTEN_HOST = "100.100.100.100"  # Only reachable via Tailscale, not local Wi-Fi
+LISTEN_HOST = "100.100.100.100"  # Only reachable inside your Tailscale mesh
 ```
-
-This means the portal is **only accessible from within your Tailscale network**, with zero exposure on local Wi-Fi, public internet, or hotspots.
-
-### What This Tool is NOT
-
-- Not a production-grade server; it is a personal utility tool
-- Not safe to expose on a public IP without HTTPS/Tailscale
-- Not encrypted at the transport layer (HTTP, not HTTPS); use Tailscale's WireGuard for encryption
-- Not designed for multi-user environments
 
 ---
 
 ## Troubleshooting
 
-### Phone can't reach the portal
-
+### Phone cannot reach the web portal
+Ensure your Windows Firewall is allowing incoming traffic on the proxy port:
 ```powershell
-# Check firewall allows port 15842
 netsh advfirewall firewall add rule name="GravityBridge" dir=in action=allow protocol=TCP localport=15842
 ```
 
 ### ADB device not found
-
+If the Phone Drive explorer reports an error connecting to the phone:
 ```powershell
-# Reconnect ADB
 adb kill-server
 adb start-server
 adb connect YOUR_PHONE_IP:5555
 ```
 
-### Progress bar stuck at 20%
-
-This is normal when uploading over Tailscale/cellular. The proxy is tracking actual bytes written to disk, and the progress will update as data arrives.
-
-### Multiple Python processes running
-
+### Multiple Python instances running
+To completely kill any hanging background proxy instances before starting:
 ```powershell
-# Kill all proxy instances
 Get-Process python | Stop-Process -Force
-# Then restart
 python -u proxy.py
 ```
-
-### Proxy fails to start with "port must be 0-65535"
-
-The `PROXY_PORT` in your `.env` is above `65535` (the maximum valid port). Set a value between `1024` and `65535`. The proxy will fall back to `15842` if an invalid port is detected and log a warning.
 
 ---
 
@@ -402,5 +375,3 @@ The `PROXY_PORT` in your `.env` is above `65535` (the maximum valid port). Set a
 This project is licensed under the [MIT License](LICENSE).
 
 Copyright (c) 2026 Mohit Arora
-
----

@@ -53,3 +53,7 @@ Desktop.ini
 *.crt
 *.cer
 *.pfx
+
+# Assistant Tools and Scratch Files
+.agents/
+scratch/
