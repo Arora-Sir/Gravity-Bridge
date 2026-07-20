@@ -58,7 +58,7 @@ GravityBridge runs a Python web server on port `15842`. It connects your phone b
 
 ```
 ┌─────────────────────┐     HTTP (Wi-Fi / Tailscale)    ┌──────────────────────────────────┐
-│   📱 Phone Browser  │ ──────────────────────────────► │  GravityBridge Proxy  :15842     │
+│    Phone Browser    │ ──────────────────────────────► │  GravityBridge Proxy  :15842     │
 │  (Chrome / Brave)   │                                 │                                  │
 └─────────────────────┘                                 │  ┌─────────────────────────────┐ │
                                                         │  │  /upload  → Phone Drive UI  │ │
