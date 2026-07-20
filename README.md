@@ -1,8 +1,8 @@
-<h1 align="center">GravityBridge: Mobile Portal for Google's Antigravity 2.0</h1>
+<h1 align="center">GravityBridge: Google's Antigravity 2.0 Mobile Portal</h1>
 
-<h3 align="center">
-  Use your phone browser to control the AI coding agent on your PC, and transfer files between phone and laptop easily.
-</h3>
+<p align="center">
+  <strong>Use your phone browser to control the AI coding agent on your PC, and transfer files between phone and laptop easily.</strong>
+</p>
 
 <p align="center">
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 3.10+"></a>
@@ -16,17 +16,9 @@
 
 ## 🗺️ Quick Navigation
 
-<p align="center">
-  <a href="#what-is-googles-antigravity-20">📖 <b>Overview</b></a> &nbsp;&nbsp;•&nbsp;&nbsp;
-  <a href="#screenshots">🖼️ <b>Screenshots</b></a> &nbsp;&nbsp;•&nbsp;&nbsp;
-  <a href="#how-it-works-architecture">🏗️ <b>Architecture</b></a> &nbsp;&nbsp;•&nbsp;&nbsp;
-  <a href="#real-example-coding-from-your-bed-or-couch">🛋️ <b>Couch Coding</b></a>
-  <br>
-  <a href="#quick-start">🚀 <b>Quick Start</b></a> &nbsp;&nbsp;•&nbsp;&nbsp;
-  <a href="#adb-wireless-debugging-setup">🔌 <b>ADB Pairing</b></a> &nbsp;&nbsp;•&nbsp;&nbsp;
-  <a href="#security">🔒 <b>Security</b></a> &nbsp;&nbsp;•&nbsp;&nbsp;
-  <a href="#troubleshooting">🛠️ <b>Troubleshooting</b></a>
-</p>
+| [📖 Overview](#what-is-googles-antigravity-20) | [🖼️ Screenshots](#screenshots) | [🏗️ Architecture](#how-it-works-architecture) | [🛋️ Couch Coding](#real-example-coding-from-your-bed-or-couch) |
+| :---: | :---: | :---: | :---: |
+| [🚀 Quick Start](#quick-start) | [🔌 ADB Pairing](#adb-wireless-debugging-setup) | [🔒 Security](#security) | [🛠️ Troubleshooting](#troubleshooting) |
 
 ---
 
