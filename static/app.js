@@ -359,5 +359,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // OpenCode Tab Handler
+    const opencodeTab = document.getElementById('tab-opencode');
+    if (opencodeTab) {
+        opencodeTab.addEventListener('click', () => {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            const opencodeView = document.getElementById('view-opencode');
+            if (opencodeView) opencodeView.classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            opencodeTab.classList.add('active');
+        });
+    }
+
     loadHistory();
 });
