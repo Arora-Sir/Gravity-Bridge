@@ -61,23 +61,31 @@ def get_api_key(client_key: str = None) -> str:
     if client_key and client_key.strip():
         return client_key.strip()
     
+    # 1. Check .env file
+    env_file_key = _load_env_value("GEMINI_API_KEY")
+    if env_file_key and env_file_key != "CHANGE_ME":
+        return env_file_key
+
+    # 2. Check environment variable
+    env_key = os.environ.get("GEMINI_API_KEY")
+    if env_key:
+        return env_key
+
+    # 3. Fallback to config.json
     config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
     if os.path.exists(config_path):
         try:
             with open(config_path, "r") as f:
                 cfg = json.load(f)
-                if "gemini_api_key" in cfg and cfg["gemini_api_key"].strip():
-                    return cfg["gemini_api_key"].strip()
+                val = cfg.get("gemini_api_key", "").strip()
+                if val and val != "CHANGE_ME":
+                    return val
         except:
             pass
 
-    env_key = os.environ.get("GEMINI_API_KEY")
-    if env_key:
-        return env_key
-    
     raise HTTPException(
         status_code=400, 
-        detail="Gemini API Key not found. Please put your Gemini API Key in the config.json file on your laptop."
+        detail="Gemini API Key not found. Please set GEMINI_API_KEY in your .env file on your laptop."
     )
 
 # Path resolver to guarantee Windows path parsing safety (relative to user home or absolute)

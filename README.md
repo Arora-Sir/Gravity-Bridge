@@ -66,18 +66,18 @@ GravityBridge runs a Python web server on port `15842`. It connects your phone b
 │    Phone Browser    │ ──────────────────────────────► │  GravityBridge Proxy  :15842     │
 │  (Chrome / Brave)   │                                 │                                  │
 └─────────────────────┘                                 │  ┌─────────────────────────────┐ │
-                                                        │  │  /upload  → Phone Drive UI  │ │
-                                                        │  │  /adb-ls  → Browse Android  │ │
-                                                        │  │  /adb-pull → Pull files     │ │
-                                                        │  │  /*       → Proxy to AI     │ │
-                                                        │  └──────────┬──────────────────┘ │
-                                                        └─────────────│────────────────────┘
-                                                                      │ HTTPS localhost
-                                                                      ▼
-                                                        ┌─────────────────────────────────┐
-                                                        │  Google Antigravity 2.0 :65286  │
-                                                        │  (Electron app on your laptop)  │
-                                                        └─────────────────────────────────┘
+                                                        │  │  Tab 1: Antigravity AI Chat │ │
+                                                        │  │  Tab 2: Phone Drive Explorer│ │
+                                                        │  │  Tab 3: OpenCode Web Editor │ │
+                                                        │  └──────────┬──────────┬───────┘ │
+                                                        └─────────────│──────────│─────────┘
+                                                                      │          │
+                                                      HTTPS localhost │          │ HTTP localhost
+                                                                      ▼          ▼
+                                                        ┌──────────────┐ ┌──────────────┐
+                                                        │ Antigravity  │ │ OpenCode AI  │
+                                                        │ IDE  :65286  │ │ Server:14096 │
+                                                        └──────────────┘ └──────────────┘
 ```
 
 1. **Proxy Server**: It automatically finds the SSL port of the Antigravity desktop app on your laptop and forwards all chat traffic to it.
@@ -181,6 +181,29 @@ PROXY_PORT=15842
 # Your display name (used in AI system prompts)
 USER_DISPLAY_NAME=YourName
 ```
+
+#### Optional: Project & Tab Customization (`gravitybridge.json`)
+
+GravityBridge automatically generates a `gravitybridge.json` file in your repository root on first run. You can edit it to toggle bottom tabs or configure auto-launch behavior:
+
+```json
+{
+  "version": "2.0.0",
+  "tabs": {
+    "chat": true,
+    "drive": true,
+    "opencode": true
+  },
+  "opencode": {
+    "auto_start": true,
+    "open_pc_browser": true
+  }
+}
+```
+
+* **`tabs`**: Set any tab (`chat`, `drive`, `opencode`) to `true` or `false` to show/hide it on your bottom navigation bar.
+* **`opencode.auto_start`**: Set to `true` to automatically launch `opencode serve` on `OPENCODE_PORT` (default `14096` in `.env`). When set to `false`, GravityBridge automatically terminates any active OpenCode session running on `OPENCODE_PORT` from Task Manager.
+* **`opencode.open_pc_browser`**: Set to `true` to auto-open OpenCode (`http://localhost:14096`) in your laptop browser for live session mirroring.
 
 ### Step 3: Run the Proxy Server
 
@@ -419,6 +442,7 @@ All configuration is handled via the `.env` file:
 | `AUTH_PIN` | Yes | Passphrase for the web portal lock screen |
 | `ADB_EXECUTABLE_PATH` | For Phone Drive | Full path to `adb.exe` (e.g. `C:\platform-tools\adb.exe`) |
 | `PROXY_PORT` | No | Port the proxy listens on (default: `15842`) |
+| `OPENCODE_PORT` | No | Port for OpenCode server (default: `14096`) |
 | `USER_DISPLAY_NAME` | No | Name used in AI system prompts (defaults to Windows username) |
 | `USER_HOME_PATH` | No | Home directory for file operations (defaults to `~`) |
 | `TAILSCALE_PHONE_NAME` | No | Device name of phone in Tailscale status (defaults to `android`) |

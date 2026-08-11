@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "tabs": {
+    "chat": true,
+    "drive": true,
+    "opencode": true
+  },
+  "opencode": {
+    "auto_start": true,
+    "open_pc_browser": false
+  }
+}

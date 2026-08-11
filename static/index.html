@@ -66,76 +66,115 @@
                             <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Reasoning)</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="opencode-url-input">OpenCode Server URL</label>
+                        <input type="url" id="opencode-url-input" placeholder="http://localhost:4096">
+                        <p class="help-text">Local OpenCode server address. Saved to browser storage.</p>
+                    </div>
                     <button id="save-settings-btn" class="primary-btn">Save Configuration</button>
                 </div>
             </section>
 
-            <!-- Chat Window -->
-            <section class="chat-container">
-                <!-- Messages Container -->
-                <div id="chat-messages" class="chat-messages">
-                    <!-- Greeting Start Layout -->
-                    <div id="chat-greeting" class="chat-greeting">
-                        <div class="greet-icon">▲</div>
-                        <h2>Ask the Laptop Agent</h2>
-                        <p class="greet-sub">Direct file uploads, multi-format unzipping, and folder analysis straight from your phone.</p>
-                        
-                        <!-- Starter Suggestions -->
-                        <div class="starter-grid">
-                            <div class="starter-card" data-prompt="List files in my Downloads folder.">
-                                <h3>📂 Browse Files</h3>
-                                <p>"List files in my Downloads folder."</p>
-                            </div>
-                            <div class="starter-card" data-prompt="In the Downloads folder, analyze files in a subfolder.">
-                                <h3>🔍 Inspect Folder</h3>
-                                <p>"Analyze a downloads subfolder."</p>
-                            </div>
-                            <div class="starter-card" data-prompt="Summarize the uploaded files I attached in this chat.">
-                                <h3>⚡ Process Uploads</h3>
-                                <p>"Read the zip/pdf I just uploaded."</p>
+            <!-- Tab Views -->
+            <div class="view active" id="view-chat">
+                <!-- Chat Window -->
+                <section class="chat-container">
+                    <!-- Messages Container -->
+                    <div id="chat-messages" class="chat-messages">
+                        <!-- Greeting Start Layout -->
+                        <div id="chat-greeting" class="chat-greeting">
+                            <div class="greet-icon">▲</div>
+                            <h2>Ask the Laptop Agent</h2>
+                            <p class="greet-sub">Direct file uploads, multi-format unzipping, and folder analysis straight from your phone.</p>
+                            
+                            <!-- Starter Suggestions -->
+                            <div class="starter-grid">
+                                <div class="starter-card" data-prompt="List files in my Downloads folder.">
+                                    <h3>📂 Browse Files</h3>
+                                    <p>"List files in my Downloads folder."</p>
+                                </div>
+                                <div class="starter-card" data-prompt="In the Downloads folder, analyze files in a subfolder.">
+                                    <h3>🔍 Inspect Folder</h3>
+                                    <p>"Analyze a downloads subfolder."</p>
+                                </div>
+                                <div class="starter-card" data-prompt="Summarize the uploaded files I attached in this chat.">
+                                    <h3>⚡ Process Uploads</h3>
+                                    <p>"Read the zip/pdf I just uploaded."</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Attached Preview Bar -->
-                <div id="attachment-preview" class="attachment-preview hidden">
-                    <!-- Dynamic file badges will go here -->
-                </div>
+                    <!-- Attached Preview Bar -->
+                    <div id="attachment-preview" class="attachment-preview hidden">
+                        <!-- Dynamic file badges will go here -->
+                    </div>
 
-                <!-- Chat Input Controls -->
-                <div class="chat-input-area">
-                    <button id="attach-btn" class="icon-btn attach-btn" aria-label="Attach Files" title="Select files to upload">
-                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                    </button>
-                    <!-- Hidden Multi-file input -->
-                    <input type="file" id="file-attachments-input" multiple class="hidden-input">
-                    
-                    <textarea id="chat-input" rows="1" placeholder="Type a message or directory command..." aria-label="Message"></textarea>
-                    
-                    <button id="send-btn" class="send-btn" aria-label="Send Message">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="22" y1="2" x2="11" y2="13"></line>
-                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                        </svg>
-                    </button>
-                </div>
-            </section>
+                    <!-- Chat Input Controls -->
+                    <div class="chat-input-area">
+                        <button id="attach-btn" class="icon-btn attach-btn" aria-label="Attach Files" title="Select files to upload">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </button>
+                        <!-- Hidden Multi-file input -->
+                        <input type="file" id="file-attachments-input" multiple class="hidden-input">
+                        
+                        <textarea id="chat-input" rows="1" placeholder="Type a message or directory command..." aria-label="Message"></textarea>
+                        
+                        <button id="send-btn" class="send-btn" aria-label="Send Message">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                </section>
 
-            <!-- History Dashboard -->
-            <section class="history-section">
-                <div class="section-title">
-                    <h2>Laptop Chat Session Log</h2>
-                    <span id="history-count" class="badge">0</span>
+                <!-- History Dashboard -->
+                <section class="history-section">
+                    <div class="section-title">
+                        <h2>Laptop Chat Session Log</h2>
+                        <span id="history-count" class="badge">0</span>
+                    </div>
+                    <div id="history-list" class="history-list">
+                        <div class="empty-history">No past chat records found on this laptop.</div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Phone Drive View -->
+            <div class="view" id="view-drive">
+                <div class="drive-placeholder">
+                    <div class="drive-placeholder-icon">📱</div>
+                    <h2>Phone Drive</h2>
+                    <p>Phone Drive is available in proxy mode.</p>
+                    <p class="help-text">Connect from your phone via <code>http://&lt;laptop-ip&gt;:54321</code> to access the full wireless drive.</p>
                 </div>
-                <div id="history-list" class="history-list">
-                    <div class="empty-history">No past chat records found on this laptop.</div>
-                </div>
-            </section>
+            </div>
+
+            <!-- OpenCode View -->
+            <div class="view" id="view-opencode">
+                <iframe id="opencode-iframe" src="" title="OpenCode" allowfullscreen></iframe>
+            </div>
         </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav" role="navigation" aria-label="App navigation">
+            <button class="nav-tab active" id="tab-chat" aria-label="Chat tab">
+                <span class="nav-tab-icon">💬</span>
+                <span>Chat</span>
+            </button>
+            <button class="nav-tab" id="tab-drive" aria-label="Phone Drive tab">
+                <span class="nav-tab-icon">📱</span>
+                <span>Phone Drive</span>
+            </button>
+            <button class="nav-tab" id="tab-opencode" aria-label="OpenCode tab">
+                <span class="nav-tab-icon">💻</span>
+                <span>OpenCode</span>
+            </button>
+        </nav>
         
         <!-- App Toast Notification -->
         <div id="toast" class="toast hidden">Copied to clipboard!</div>

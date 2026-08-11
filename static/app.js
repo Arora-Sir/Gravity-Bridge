@@ -32,6 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('gravity_model')) {
         modelSelect.value = localStorage.getItem('gravity_model');
     }
+    const opencodeUrlInput = document.getElementById('opencode-url-input');
+    if (opencodeUrlInput && localStorage.getItem('gb_opencode_url')) {
+        opencodeUrlInput.value = localStorage.getItem('gb_opencode_url');
+    }
 
     // Toggle settings panel
     settingsToggleBtn.addEventListener('click', () => {
@@ -42,8 +46,43 @@ document.addEventListener('DOMContentLoaded', () => {
     saveSettingsBtn.addEventListener('click', () => {
         localStorage.setItem('gravity_api_key', apiKeyInput.value.trim());
         localStorage.setItem('gravity_model', modelSelect.value);
+        const opencodeUrlInput = document.getElementById('opencode-url-input');
+        if (opencodeUrlInput) {
+            const url = opencodeUrlInput.value.trim();
+            if (url) localStorage.setItem('gb_opencode_url', url);
+            const iframe = document.getElementById('opencode-iframe');
+            if (iframe && iframe.getAttribute('data-loaded') && url) {
+                iframe.src = url;
+            }
+        }
         settingsPanel.classList.add('hidden');
         showToast('Settings saved');
+    });
+
+    // --- 3-Tab Bottom Navigation Switching ---
+    const navTabs = {
+        chat:     { btn: document.getElementById('tab-chat'),     view: document.getElementById('view-chat') },
+        drive:    { btn: document.getElementById('tab-drive'),    view: document.getElementById('view-drive') },
+        opencode: { btn: document.getElementById('tab-opencode'), view: document.getElementById('view-opencode') }
+    };
+
+    function switchTab(name) {
+        Object.entries(navTabs).forEach(([key, { btn, view }]) => {
+            if (btn)  btn.classList.toggle('active', key === name);
+            if (view) view.classList.toggle('active', key === name);
+        });
+        if (name === 'opencode') {
+            const iframe = document.getElementById('opencode-iframe');
+            if (iframe && !iframe.getAttribute('data-loaded')) {
+                const url = localStorage.getItem('gb_opencode_url') || ('http://' + window.location.hostname + ':4096');
+                iframe.src = url;
+                iframe.setAttribute('data-loaded', '1');
+            }
+        }
+    }
+
+    Object.entries(navTabs).forEach(([name, { btn }]) => {
+        if (btn) btn.addEventListener('click', () => switchTab(name));
     });
 
     // Clear chat

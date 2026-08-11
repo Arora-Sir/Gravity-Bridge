@@ -28,6 +28,7 @@ import sys
 import time
 import os
 import subprocess
+import webbrowser
 import re
 import urllib.request
 import urllib.parse
@@ -101,6 +102,11 @@ if PROXY_PORT > 65535 or PROXY_PORT < 1:
     print(f"[!] Invalid port {PROXY_PORT} -- must be 1-65535. Using default 15842.")
     PROXY_PORT = 15842
 print(f"[+] PROXY_PORT set to: {PROXY_PORT}")
+
+OPENCODE_PORT = int(_load_env_value("OPENCODE_PORT", "14096"))
+if OPENCODE_PORT > 65535 or OPENCODE_PORT < 1:
+    OPENCODE_PORT = 14096
+print(f"[+] OPENCODE_PORT set to: {OPENCODE_PORT}")
 
 # --- Load GravityBridge logo from favicon.svg (base64 for inline embedding) ---
 _FAVICON_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "favicon.svg")
@@ -277,7 +283,8 @@ def _send_json(client_socket, data, extra_headers="", status="200 OK"):
 def get_pids_by_name(name_query):
     pids = []
     try:
-        res = subprocess.run(["tasklist", "/FO", "CSV", "/NH"], capture_output=True, text=True, errors='ignore')
+        flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+        res = subprocess.run(["tasklist", "/FO", "CSV", "/NH"], capture_output=True, text=True, errors='ignore', creationflags=flags)
         for line in res.stdout.splitlines():
             parts = line.split(',')
             if len(parts) >= 2:
@@ -294,7 +301,8 @@ def find_ports_by_pids(pids):
     if not pids:
         return ports
     try:
-        res = subprocess.run(["netstat", "-ano"], capture_output=True, text=True, errors='ignore')
+        flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+        res = subprocess.run(["netstat", "-ano"], capture_output=True, text=True, errors='ignore', creationflags=flags)
         for line in res.stdout.splitlines():
             if "LISTENING" in line:
                 parts = line.split()
@@ -484,15 +492,24 @@ def get_floating_button_js():
     Injects via /main.js prepend (safe -- no chunked body surgery):
     1. GravityBridge brand favicon + title
     2. Sticky top header bar (logo, IP badge, Logout)
-    3. Native bottom nav bar (Chat | Phone Drive) at 52px height
+    3. Native bottom nav bar (Chat | Phone Drive | OpenCode)
     4. SPA iframe overlay (#gb-overlay) for instant context switching
     """
-    return '''
+    cfg = load_gravitybridge_config()
+    tabs_cfg = cfg.get("tabs", {})
+    show_chat = tabs_cfg.get("chat", True)
+    show_drive = tabs_cfg.get("drive", True)
+    show_opencode = tabs_cfg.get("opencode", True)
+
+    js = '''
 (function() {
   if (window.self !== window.top) return; // Prevent double injection inside iframes
   if (document.getElementById('gb-nav')) return; // already injected
 
-  var ICON_B64 = "''' + ICON_B64 + '''";
+  var ICON_B64 = "__ICON_B64__";
+  var SHOW_CHAT = __SHOW_CHAT__;
+  var SHOW_DRIVE = __SHOW_DRIVE__;
+  var SHOW_OPENCODE = __SHOW_OPENCODE__;
 
   // Dynamically set title and favicon
   document.title = "GravityBridge";
@@ -502,7 +519,7 @@ def get_floating_button_js():
   link.href = 'data:image/svg+xml;base64,' + ICON_B64;
   document.getElementsByTagName('head')[0].appendChild(link);
 
-  //  # --- CSS ---
+  // --- CSS ---
   var style = document.createElement('style');
   style.id = 'gb-nav-css';
   style.textContent = [
@@ -523,11 +540,13 @@ def get_floating_button_js():
     '.gb-sponsor-btn .gb-heart{display:inline-block;animation:gbHeartBeat 1.8s ease-in-out infinite;}',
     '.gb-top-right{display:flex!important;align-items:center!important;gap:6px!important;flex-shrink:0!important;}',
     '#gb-nav{position:fixed!important;bottom:0!important;left:0!important;right:0!important;z-index:2147483647!important;display:flex!important;height:52px!important;background:#0d0e14!important;border-top:1px solid rgba(255,255,255,0.09)!important;animation:gbSlideUp 0.25s ease-out both!important;}',
-    '.gb-tab{flex:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;cursor:pointer!important;border:none!important;background:transparent!important;color:rgba(255,255,255,0.35)!important;font-size:0.6rem!important;font-weight:600!important;letter-spacing:0.04em!important;padding:5px 0!important;font-family:Outfit,system-ui,sans-serif!important;min-width:0!important;width:50%!important;}',
+    '.gb-tab{flex:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;cursor:pointer!important;border:none!important;background:transparent!important;color:rgba(255,255,255,0.35)!important;font-size:0.6rem!important;font-weight:600!important;letter-spacing:0.04em!important;padding:5px 0!important;font-family:Outfit,system-ui,sans-serif!important;min-width:0!important;}',
     '.gb-tab .icon{font-size:1.1rem!important;line-height:1!important;display:block!important;}',
     '.gb-tab.active{color:#fff!important;background:rgba(217,119,6,0.2)!important;}',
     '.gb-tab.active .icon{filter:drop-shadow(0 0 5px rgba(217,119,6,0.9))!important;}',
     '#gb-overlay{position:fixed!important;top:55px!important;left:0!important;width:100%!important;height:calc(100% - 107px)!important;z-index:2147483646!important;display:none!important;background:#0d0e14!important;}',
+    '#gb-overlay-opencode{position:fixed!important;top:55px!important;left:0!important;width:100%!important;height:calc(100% - 107px)!important;z-index:2147483646!important;display:none!important;background:#0d0e14!important;flex-direction:column!important;}',
+    '#gb-overlay-opencode iframe{width:100%!important;flex:1!important;border:none!important;display:block!important;}',
     '#root{padding-top:55px!important;padding-bottom:52px!important;box-sizing:border-box!important;}',
     'body{background:#0d0e14!important;}'
   ].join('');
@@ -584,61 +603,96 @@ def get_floating_button_js():
   document.body.appendChild(sponsorModal);
 
   // --- Phone Drive Overlay iframe ---
-  var overlay = document.createElement('div');
-  overlay.id = 'gb-overlay';
-  overlay.innerHTML = '<iframe id="gb-iframe" src="/upload" style="width:100%;height:100%;border:none;display:block;"></iframe>';
-  document.body.appendChild(overlay);
+  if (SHOW_DRIVE) {
+    var overlay = document.createElement('div');
+    overlay.id = 'gb-overlay';
+    overlay.innerHTML = '<iframe id="gb-iframe" src="/upload" style="width:100%;height:100%;border:none;display:block;"></iframe>';
+    document.body.appendChild(overlay);
+  }
+
+  // --- OpenCode Overlay iframe ---
+  if (SHOW_OPENCODE) {
+    var ocUrl = 'http://' + window.location.hostname + ':__OPENCODE_PORT__';
+    var overlayOC = document.createElement('div');
+    overlayOC.id = 'gb-overlay-opencode';
+    overlayOC.style.cssText = 'position:fixed;top:56px;left:0;width:100%;height:calc(100% - 108px);z-index:99999;display:none;flex-direction:column;background:#0d0e14;';
+    overlayOC.innerHTML = '<div style="background:#161a23;padding:6px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.08);font-family:Outfit,sans-serif;font-size:0.8rem;color:#a1a1aa;"><span style="display:flex;align-items:center;gap:6px;"><span style="color:#10b981;">●</span> OpenCode Live Web IDE</span><a id="gb-iframe-opencode-popout" href="' + ocUrl + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="color:#60a5fa;text-decoration:none;font-weight:600;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.3);border-radius:6px;padding:3px 10px;font-size:0.75rem;">Open in New Window ↗</a></div><iframe id="gb-iframe-opencode" src="' + ocUrl + '" style="width:100%;height:100%;border:none;display:block;background:#0d0e14;flex:1;"></iframe>';
+    document.body.appendChild(overlayOC);
+  }
 
   // --- Bottom Nav Bar ---
   var nav = document.createElement('nav');
   nav.id = 'gb-nav';
   nav.setAttribute('role', 'navigation');
   nav.setAttribute('aria-label', 'GravityBridge navigation');
-  nav.innerHTML = [
-    '<button class="gb-tab active" id="gb-tab-chat">',
-      '<span class="icon">&#128172;</span><span>Chat</span>',
-    '</button>',
-    '<button class="gb-tab" id="gb-tab-upload">',
-      '<span class="icon">&#128241;</span><span>Phone Drive</span>',
-    '</button>'
-  ].join('');
+  var tabsArr = [];
+  if (SHOW_CHAT) tabsArr.push('<button class="gb-tab active" id="gb-tab-chat"><span class="icon">&#128172;</span><span>Chat</span></button>');
+  if (SHOW_DRIVE) tabsArr.push('<button class="gb-tab" id="gb-tab-upload"><span class="icon">&#128241;</span><span>Phone Drive</span></button>');
+  if (SHOW_OPENCODE) tabsArr.push('<button class="gb-tab" id="gb-tab-opencode"><span class="icon">&#128187;</span><span>OpenCode</span></button>');
+  nav.innerHTML = tabsArr.join('');
   document.body.appendChild(nav);
 
   // --- Tab Switch Logic ---
   var tabChat = document.getElementById('gb-tab-chat');
   var tabUpload = document.getElementById('gb-tab-upload');
+  var tabOpencode = document.getElementById('gb-tab-opencode');
+  var subLabel = document.querySelector('.gb-top-logo-sub');
+  var overlay = document.getElementById('gb-overlay');
+  var overlayOC = document.getElementById('gb-overlay-opencode');
 
   function setActive(tab) {
-    if (tab === 'chat') {
-      tabChat.classList.add('active');
-      tabUpload.classList.remove('active');
-      overlay.style.setProperty('display', 'none', 'important');
-    } else {
-      tabUpload.classList.add('active');
-      tabChat.classList.remove('active');
-      overlay.style.setProperty('display', 'block', 'important');
+    if (tabChat) tabChat.classList.toggle('active', tab === 'chat');
+    if (tabUpload) tabUpload.classList.toggle('active', tab === 'upload');
+    if (tabOpencode) tabOpencode.classList.toggle('active', tab === 'opencode');
+    if (overlay) overlay.style.setProperty('display', tab === 'upload' ? 'block' : 'none', 'important');
+    if (overlayOC) overlayOC.style.setProperty('display', tab === 'opencode' ? 'flex' : 'none', 'important');
+    if (subLabel) {
+      subLabel.textContent = tab === 'opencode' ? 'OPENCODE' : tab === 'upload' ? 'WIRELESS DRIVE' : 'AGENT MODE';
     }
   }
 
   // Event Listeners
-  document.getElementById('gb-top-sponsor').addEventListener('click', function() {
-    sponsorModal.style.display = 'flex';
-  });
-  document.getElementById('gb-sponsor-close').addEventListener('click', function() {
-    sponsorModal.style.display = 'none';
-  });
+  if (document.getElementById('gb-top-sponsor')) {
+    document.getElementById('gb-top-sponsor').addEventListener('click', function() {
+      sponsorModal.style.display = 'flex';
+    });
+  }
+  if (document.getElementById('gb-sponsor-close')) {
+    document.getElementById('gb-sponsor-close').addEventListener('click', function() {
+      sponsorModal.style.display = 'none';
+    });
+  }
   sponsorModal.addEventListener('click', function(e) {
     if (e.target === sponsorModal) sponsorModal.style.display = 'none';
   });
 
-  tabChat.addEventListener('click', function() { setActive('chat'); });
-  tabUpload.addEventListener('click', function() { setActive('upload'); });
+  if (tabChat) tabChat.addEventListener('click', function() { setActive('chat'); });
+  if (tabUpload) tabUpload.addEventListener('click', function() { setActive('upload'); });
+  if (tabOpencode) {
+    tabOpencode.addEventListener('click', function() {
+      var iframe = document.getElementById('gb-iframe-opencode');
+      var popout = document.getElementById('gb-iframe-opencode-popout');
+      var targetUrl = 'http://' + window.location.hostname + ':__OPENCODE_PORT__';
+      if (popout) popout.href = targetUrl;
+      if (iframe && (!iframe.src || iframe.src.indexOf(':__OPENCODE_PORT__') === -1)) {
+        iframe.src = targetUrl;
+      }
+      setActive('opencode');
+    });
+  }
   window.addEventListener('message', function(e) {
     if (e.data === 'gb:back-to-chat') { setActive('chat'); }
+    else if (e.data === 'gb:switch-opencode') { setActive('opencode'); }
   });
 })();
-
 '''
+    return (
+        js.replace("__ICON_B64__", ICON_B64)
+        .replace("__OPENCODE_PORT__", str(OPENCODE_PORT))
+        .replace("__SHOW_CHAT__", "true" if show_chat else "false")
+        .replace("__SHOW_DRIVE__", "true" if show_drive else "false")
+        .replace("__SHOW_OPENCODE__", "true" if show_opencode else "false")
+    )
 
 def _read_post_body(initial_data, client_socket):
     """Reads full POST body using Content-Length header, buffering remaining bytes from socket."""
@@ -2593,6 +2647,14 @@ def get_upload_page_html():
             });
         }
     </script>
+    <div id="gb-opencode-view" style="display:none;position:fixed;top:55px;left:0;width:100%;height:calc(100vh - 107px);z-index:10000;background:#0d0e14;flex-direction:column;">
+        <div style="background:#161a23;padding:6px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.08);font-family:Outfit,sans-serif;font-size:0.8rem;color:#a1a1aa;">
+            <span style="display:flex;align-items:center;gap:6px;"><span style="color:#10b981;">●</span> OpenCode Live Web IDE</span>
+            <a id="gb-opencode-popout" href="#" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="color:#60a5fa;text-decoration:none;font-weight:600;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.3);border-radius:6px;padding:3px 10px;font-size:0.75rem;">Open in New Window ↗</a>
+        </div>
+        <iframe id="gb-opencode-iframe" src="" style="width:100%;height:100%;border:none;display:block;flex:1;background:#0d0e14;"></iframe>
+    </div>
+
     <script>
         function gbSwitchToChat() {
             // If we are inside an iframe (SPA overlay mode), signal the parent
@@ -2603,42 +2665,70 @@ def get_upload_page_html():
             }
             // Show preloaded chat iframe in middle section, keep top/bottom bar visible
             var chatFrame = document.getElementById('gb-chat-preload');
+            var opencodeView = document.getElementById('gb-opencode-view');
             var chatTab = document.getElementById('gb-nav-chat');
             var uploadTab = document.getElementById('gb-nav-upload');
+            var opencodeTab = document.getElementById('gb-nav-opencode');
+            if (opencodeView) opencodeView.style.display = 'none';
             if (chatFrame) {
                 chatFrame.style.display = 'block';
                 chatFrame.style.top = '55px';
                 chatFrame.style.height = 'calc(100% - 107px)';
-                chatTab.classList.add('active');
-                uploadTab.classList.remove('active');
             } else {
                 window.location.href = '/';
+                return;
             }
+            chatTab.classList.add('active');
+            uploadTab.classList.remove('active');
+            if (opencodeTab) opencodeTab.classList.remove('active');
         }
 
         function gbSwitchToUpload() {
             var chatFrame = document.getElementById('gb-chat-preload');
+            var opencodeView = document.getElementById('gb-opencode-view');
             var chatTab = document.getElementById('gb-nav-chat');
             var uploadTab = document.getElementById('gb-nav-upload');
-            if (chatFrame) {
-                chatFrame.style.display = 'none';
-                uploadTab.classList.add('active');
-                chatTab.classList.remove('active');
+            var opencodeTab = document.getElementById('gb-nav-opencode');
+            if (opencodeView) opencodeView.style.display = 'none';
+            if (chatFrame) chatFrame.style.display = 'none';
+            uploadTab.classList.add('active');
+            chatTab.classList.remove('active');
+            if (opencodeTab) opencodeTab.classList.remove('active');
+        }
+
+        function gbSwitchToOpencode() {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage('gb:switch-opencode', '*');
+                window.top.postMessage('gb:switch-opencode', '*');
             }
+            var chatFrame = document.getElementById('gb-chat-preload');
+            var opencodeView = document.getElementById('gb-opencode-view');
+            var opencodeFrame = document.getElementById('gb-opencode-iframe');
+            var popout = document.getElementById('gb-opencode-popout');
+            var chatTab = document.getElementById('gb-nav-chat');
+            var uploadTab = document.getElementById('gb-nav-upload');
+            var opencodeTab = document.getElementById('gb-nav-opencode');
+            if (chatFrame) chatFrame.style.display = 'none';
+            if (opencodeView) {
+                opencodeView.style.display = 'flex';
+                var ocUrl = 'http://' + window.location.hostname + ':__OPENCODE_PORT__';
+                if (popout) popout.href = ocUrl;
+                if (opencodeFrame && (!opencodeFrame.src || opencodeFrame.src.indexOf(':__OPENCODE_PORT__') === -1)) {
+                    opencodeFrame.src = ocUrl;
+                }
+            }
+            chatTab.classList.remove('active');
+            uploadTab.classList.remove('active');
+            if (opencodeTab) opencodeTab.classList.add('active');
         }
 
         function gbGoBack() { gbSwitchToChat(); }
     </script>
     <!-- Bottom nav bar (Phone Drive tab is active) -->
     <nav class="gb-nav-bar gb-upload-view" id="gb-nav" role="navigation" aria-label="GravityBridge navigation">
-        <button class="gb-nav-tab" id="gb-nav-chat" aria-label="Chat" onclick="gbGoBack()">
-            <span class="icon">&#128172;</span>
-            <span>Chat</span>
-        </button>
-        <button class="gb-nav-tab active" id="gb-nav-upload" aria-label="Phone Drive" onclick="gbSwitchToUpload()">
-            <span class="icon">&#128241;</span>
-            <span>Phone Drive</span>
-        </button>
+        <!-- __CHAT_TAB_HTML__ -->
+        <!-- __DRIVE_TAB_HTML__ -->
+        <!-- __OPENCODE_TAB_HTML__ -->
     </nav>
 
     <!-- Toast container for new device notifications -->
@@ -2737,7 +2827,23 @@ def get_upload_page_html():
 </body>
 </html>
 """
-    html = html.replace("__ICON_B64__", ICON_B64)
+    cfg = load_gravitybridge_config()
+    tabs_cfg = cfg.get("tabs", {})
+    show_chat = tabs_cfg.get("chat", True)
+    show_drive = tabs_cfg.get("drive", True)
+    show_opencode = tabs_cfg.get("opencode", True)
+
+    chat_tab_html = '<button class="gb-nav-tab" id="gb-nav-chat" aria-label="Chat" onclick="gbGoBack()"><span class="icon">&#128172;</span><span>Chat</span></button>'
+    drive_tab_html = '<button class="gb-nav-tab active" id="gb-nav-upload" aria-label="Phone Drive" onclick="gbSwitchToUpload()"><span class="icon">&#128241;</span><span>Phone Drive</span></button>'
+    opencode_tab_html = '<button class="gb-nav-tab" id="gb-nav-opencode" aria-label="OpenCode" onclick="gbSwitchToOpencode()"><span class="icon">&#128187;</span><span>OpenCode</span></button>'
+
+    html = (
+        html.replace("__ICON_B64__", ICON_B64)
+        .replace("__OPENCODE_PORT__", str(OPENCODE_PORT))
+        .replace("<!-- __CHAT_TAB_HTML__ -->", chat_tab_html if show_chat else "")
+        .replace("<!-- __DRIVE_TAB_HTML__ -->", drive_tab_html if show_drive else "")
+        .replace("<!-- __OPENCODE_TAB_HTML__ -->", opencode_tab_html if show_opencode else "")
+    )
     return html
 
 def rewrite_request_headers(raw_bytes, target_port, client_host, is_stream):
@@ -3526,12 +3632,122 @@ def handle_client(client_socket, target_port):
             try: target_ssl.close()
             except: pass
 
+def load_gravitybridge_config():
+    """Load config options from gravitybridge.json if present."""
+    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "gravitybridge.json")
+    default_cfg = {
+        "version": "2.0.0",
+        "tabs": {"chat": True, "drive": True, "opencode": True},
+        "opencode": {"auto_start": True, "open_pc_browser": False}
+    }
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data
+        except Exception as e:
+            print(f"[!] Error reading gravitybridge.json: {e}", flush=True)
+    return default_cfg
+
+def stop_opencode_server():
+    """Terminates any active OpenCode process listening on OPENCODE_PORT from Task Manager."""
+    port = OPENCODE_PORT
+    if os.name == 'nt':
+        try:
+            cmd = f'netstat -ano | findstr :{port}'
+            out = subprocess.check_output(cmd, shell=True, text=True, errors='ignore')
+            pids = set()
+            for line in out.splitlines():
+                if "LISTENING" in line:
+                    parts = line.strip().split()
+                    if parts:
+                        pid = parts[-1]
+                        if pid.isdigit() and pid != "0":
+                            pids.add(pid)
+            for pid in pids:
+                print(f"[+] Terminating active OpenCode process on port {port} (PID {pid})...", flush=True)
+                subprocess.run(f'taskkill /F /PID {pid}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
+    else:
+        try:
+            cmd = f'lsof -t -i:{port}'
+            out = subprocess.check_output(cmd, shell=True, text=True, errors='ignore')
+            for pid in out.splitlines():
+                pid = pid.strip()
+                if pid.isdigit():
+                    subprocess.run(f'kill -9 {pid}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
+
+def ensure_opencode_server(config):
+    """Ensure OpenCode web server is running on configured OPENCODE_PORT. If auto_start is False, terminate active session."""
+    oc_cfg = config.get("opencode", {})
+    tabs_cfg = config.get("tabs", {})
+    auto_start = oc_cfg.get("auto_start", True)
+    tab_enabled = tabs_cfg.get("opencode", True)
+
+    if not auto_start or not tab_enabled:
+        print(f"[*] OpenCode auto_start={auto_start}, tab_enabled={tab_enabled}. Terminating active OpenCode server on port {OPENCODE_PORT}...", flush=True)
+        stop_opencode_server()
+        return
+
+    port = OPENCODE_PORT
+    already_running = False
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(0.5)
+        s.connect(("127.0.0.1", port))
+        s.close()
+        already_running = True
+        print(f"[+] OpenCode server already running on port {port}.", flush=True)
+    except Exception:
+        pass
+
+    if not already_running:
+        print(f"[*] Starting OpenCode server on port {port}...", flush=True)
+        npm_path = os.path.expanduser(r"~\AppData\Roaming\npm\opencode.cmd")
+        opencode_bin = npm_path if os.path.exists(npm_path) else "opencode"
+
+        try:
+            if os.name == 'nt':
+                cmd = f'"{opencode_bin}" serve --port {port} --hostname 0.0.0.0'
+                subprocess.Popen(
+                    cmd,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    shell=True
+                )
+            else:
+                subprocess.Popen(
+                    [opencode_bin, "serve", "--port", str(port), "--hostname", "0.0.0.0"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+            print(f"[+] OpenCode server launched in background on port {port}.", flush=True)
+        except Exception as e:
+            print(f"[!] Failed to auto-launch OpenCode server: {e}", flush=True)
+
+    if oc_cfg.get("open_pc_browser", False):
+        try:
+            print(f"[+] Opening http://localhost:{port} in PC browser...", flush=True)
+            webbrowser.open(f"http://localhost:{port}")
+        except Exception as e:
+            print(f"[!] Failed to open browser on PC: {e}", flush=True)
+
 def start_proxy():
     print("====================================================")
     print("     GravityBridge 5.38 - Dynamic HTTP Proxy        ")
     print("====================================================")
 
-    sys.stdout.reconfigure(line_buffering=True)
+    config = load_gravitybridge_config()
+    ensure_opencode_server(config)
+
+    try:
+        sys.stdout.reconfigure(line_buffering=True)
+    except Exception:
+        pass
 
     target_port = None
     while target_port is None:
@@ -3543,17 +3759,24 @@ def start_proxy():
         print("[!] Antigravity app not running. Start the desktop app.", flush=True)
         time.sleep(4)
 
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    bound = False
+    for attempt in range(10):
+        try:
+            server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server.bind((LISTEN_HOST, PROXY_PORT))
+            server.listen(200)
+            bound = True
+            print(f"[+] Proxy listening on http://0.0.0.0:{PROXY_PORT}", flush=True)
+            print("====================================================", flush=True)
+            break
+        except Exception as e:
+            server.close()
+            print(f"[!] Bind attempt {attempt + 1}/10 failed on port {PROXY_PORT}: {e}. Retrying in 1s...", flush=True)
+            time.sleep(1)
 
-    try:
-        server.bind((LISTEN_HOST, PROXY_PORT))
-        server.listen(200)
-        print(f"[+] Proxy listening on http://0.0.0.0:{PROXY_PORT}", flush=True)
-        print("====================================================", flush=True)
-
-    except Exception as e:
-        print(f"[!] Failed to bind on port {PROXY_PORT}: {e}", flush=True)
+    if not bound:
+        print(f"[!] Could not bind to port {PROXY_PORT} after 10 attempts.", flush=True)
         sys.exit(1)
 
     try:
