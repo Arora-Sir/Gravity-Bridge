@@ -108,6 +108,8 @@ if OPENCODE_PORT > 65535 or OPENCODE_PORT < 1:
     OPENCODE_PORT = 14096
 print(f"[+] OPENCODE_PORT set to: {OPENCODE_PORT}")
 
+NO_WINDOW_FLAGS = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+
 # --- Load GravityBridge logo from favicon.svg (base64 for inline embedding) ---
 _FAVICON_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "favicon.svg")
 try:
@@ -146,7 +148,7 @@ def _log_event(ip, event, detail=""):
 def get_target_adb_device():
     """Locate the target connected ADB device based on LAST_KNOWN_PHONE_IP, with a fallback if multiple are connected."""
     try:
-        res = subprocess.run([ADB_EXECUTABLE_PATH, "devices"], capture_output=True, text=True, errors='ignore')
+        res = subprocess.run([ADB_EXECUTABLE_PATH, "devices"], capture_output=True, text=True, errors='ignore', creationflags=NO_WINDOW_FLAGS)
         lines = res.stdout.splitlines()
     except Exception as e:
         print(f"[!] Error running adb devices: {e}", flush=True)
@@ -175,7 +177,7 @@ def get_target_adb_device():
         # Check Tailscale direct LAN IP resolution
         if LAST_KNOWN_PHONE_IP.startswith("100."):
             try:
-                ts_res = subprocess.run(["tailscale", "status"], capture_output=True, text=True, errors='ignore')
+                ts_res = subprocess.run(["tailscale", "status"], capture_output=True, text=True, errors='ignore', creationflags=NO_WINDOW_FLAGS)
                 for ts_line in ts_res.stdout.splitlines():
                     if LAST_KNOWN_PHONE_IP in ts_line and "direct" in ts_line:
                         match = re.search(r"direct\s+([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)", ts_line)
@@ -192,9 +194,9 @@ def get_target_adb_device():
         # Try connecting if the device is not listed
         try:
             print(f"[*] Phone IP {LAST_KNOWN_PHONE_IP} not in active devices. Attempting adb connect...", flush=True)
-            subprocess.run([ADB_EXECUTABLE_PATH, "connect", f"{LAST_KNOWN_PHONE_IP}:5555"], capture_output=True, timeout=3.0)
+            subprocess.run([ADB_EXECUTABLE_PATH, "connect", f"{LAST_KNOWN_PHONE_IP}:5555"], capture_output=True, timeout=3.0, creationflags=NO_WINDOW_FLAGS)
             
-            res = subprocess.run([ADB_EXECUTABLE_PATH, "devices"], capture_output=True, text=True, errors='ignore')
+            res = subprocess.run([ADB_EXECUTABLE_PATH, "devices"], capture_output=True, text=True, errors='ignore', creationflags=NO_WINDOW_FLAGS)
             lines = res.stdout.splitlines()
             devices = []
             for line in lines:
@@ -3173,7 +3175,7 @@ def handle_client(client_socket, target_port):
                     "-s", device_id,
                     "shell",
                     f"cd '{cleaned_path}' && stat -c '%F|%Y|%n' * 2>/dev/null"
-                ], capture_output=True, text=True, errors='ignore')
+                ], capture_output=True, text=True, errors='ignore', creationflags=NO_WINDOW_FLAGS)
                 
                 print(f"[DEBUG] GET /adb-ls -> stat returncode: {res.returncode}", flush=True)
                 
@@ -3199,7 +3201,7 @@ def handle_client(client_socket, target_port):
                         "-s", device_id,
                         "shell",
                         f"cd '{cleaned_path}' && for f in *; do [ -e \"$f\" ] || continue; [ -d \"$f\" ] && echo \"d|$f\" || echo \"f|$f\"; done"
-                    ], capture_output=True, text=True, errors='ignore')
+                    ], capture_output=True, text=True, errors='ignore', creationflags=NO_WINDOW_FLAGS)
                     
                     if res.returncode == 0:
                         for line in res.stdout.splitlines():
@@ -3260,7 +3262,7 @@ def handle_client(client_socket, target_port):
                             "-s", device_id,
                             "shell",
                             f"[ -d '{path}' ] && echo 'exists'"
-                        ], capture_output=True, text=True, errors='ignore')
+                        ], capture_output=True, text=True, errors='ignore', creationflags=NO_WINDOW_FLAGS)
                         if "exists" in check.stdout:
                             found_path = path
                             break
@@ -3271,7 +3273,7 @@ def handle_client(client_socket, target_port):
                             "-s", device_id,
                             "shell",
                             f"find /sdcard -maxdepth 4 -type d -name '{folder_name}' 2>/dev/null"
-                        ], capture_output=True, text=True, errors='ignore')
+                        ], capture_output=True, text=True, errors='ignore', creationflags=NO_WINDOW_FLAGS)
                         
                         paths = [p.strip() for p in find_res.stdout.splitlines() if p.strip()]
                         if paths:
@@ -3288,7 +3290,7 @@ def handle_client(client_socket, target_port):
                             "pull",
                             found_path,
                             local_path
-                        ], capture_output=True, text=True, errors='ignore')
+                        ], capture_output=True, text=True, errors='ignore', creationflags=NO_WINDOW_FLAGS)
                         
                         if res.returncode == 0:
                             resp_body = json.dumps({"success": True, "path": f"DeviceUploads/{folder_name}", "resolvedPath": found_path})
@@ -3363,7 +3365,7 @@ def handle_client(client_socket, target_port):
                         "pull",
                         android_path,
                         local_path
-                    ], capture_output=True, text=True, errors='ignore')
+                    ], capture_output=True, text=True, errors='ignore', creationflags=NO_WINDOW_FLAGS)
                     
                     if res.returncode == 0:
                         rel_local_path = os.path.relpath(local_path, os.path.join(os.getcwd(), "DeviceUploads")).replace('\\', '/')
@@ -3655,7 +3657,7 @@ def stop_opencode_server():
     if os.name == 'nt':
         try:
             cmd = f'netstat -ano | findstr :{port}'
-            out = subprocess.check_output(cmd, shell=True, text=True, errors='ignore')
+            out = subprocess.check_output(cmd, shell=True, text=True, errors='ignore', creationflags=NO_WINDOW_FLAGS)
             pids = set()
             for line in out.splitlines():
                 if "LISTENING" in line:
@@ -3666,7 +3668,7 @@ def stop_opencode_server():
                             pids.add(pid)
             for pid in pids:
                 print(f"[+] Terminating active OpenCode process on port {port} (PID {pid})...", flush=True)
-                subprocess.run(f'taskkill /F /PID {pid}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.run(f'taskkill /F /PID {pid}', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=NO_WINDOW_FLAGS)
         except Exception:
             pass
     else:
