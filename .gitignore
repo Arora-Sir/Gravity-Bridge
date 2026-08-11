@@ -57,3 +57,9 @@ Desktop.ini
 # Assistant Tools and Scratch Files
 .agents/
 scratch/
+
+# Research notes & analysis
+RESEARCH_ANALYSIS/
+
+# AI tooling config (internal, not for public repos)
+CLAUDE.md
