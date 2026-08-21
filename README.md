@@ -12,10 +12,6 @@
   <a href="https://github.com/Arora-Sir/Gravity-Bridge"><img src="https://img.shields.io/badge/Privacy-100%25_Local-brightgreen?style=flat-square" alt="Privacy: 100% Local"></a>
 </p>
 
-<p align="center">
-  <a href="#"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Arora-Sir/Gravity-Bridge/master/.github/badges/clones.json&style=flat-square&label=total%20downloads&color=success" alt="Total Downloads"></a>
-  <a href="#"><img src="https://visitor-badge.laobi.icu/badge?page_id=Arora-Sir.Gravity-Bridge&style=flat-square" alt="Visitors"></a>
-</p>
 
 ---
 
