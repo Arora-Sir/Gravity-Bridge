@@ -12,6 +12,13 @@
   <a href="https://github.com/Arora-Sir/Gravity-Bridge"><img src="https://img.shields.io/badge/Privacy-100%25_Local-brightgreen?style=flat-square" alt="Privacy: 100% Local"></a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/Arora-Sir/Gravity-Bridge/stargazers"><img src="https://img.shields.io/github/stars/Arora-Sir/Gravity-Bridge?style=flat-square&color=yellow" alt="GitHub Stars"></a>
+  <a href="https://github.com/Arora-Sir/Gravity-Bridge/network/members"><img src="https://img.shields.io/github/forks/Arora-Sir/Gravity-Bridge?style=flat-square&color=blue" alt="GitHub Forks"></a>
+  <a href="#"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Arora-Sir/Gravity-Bridge/master/.github/badges/clones.json&style=flat-square&label=total%20clones" alt="Total Clones"></a>
+  <a href="#"><img src="https://visitor-badge.laobi.icu/badge?page_id=Arora-Sir.Gravity-Bridge&style=flat-square" alt="Visitors"></a>
+</p>
+
 ---
 
 ## 🗺️ Quick Navigation
